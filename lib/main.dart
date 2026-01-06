@@ -1,121 +1,213 @@
 import 'package:flutter/material.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() => runApp(
+  const MaterialApp(home: UberOnboarding(), debugShowCheckedModeBanner: false),
+);
+
+class UberOnboarding extends StatefulWidget {
+  const UberOnboarding({super.key});
+
+  @override
+  State<UberOnboarding> createState() => _UberOnboardingState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _UberOnboardingState extends State<UberOnboarding> {
+  final controller = PageController();
+  int currentPage = 0; // Pour suivre la page actuelle
 
-  // This widget is the root of your application.
+  // Fonction utilitaire pour aller à la page de connexion
+  void _goToLogin() {
+    print("Navigation vers la page de Connexion / Inscription");
+    // Plus tard : Navigator.pushNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+    bool isLastPage = currentPage == 3; // On a 4 pages (0, 1, 2, 3)
+    bool isFirstPage = currentPage == 0;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // 1. Bouton "PASSER" en haut à droite
+          Positioned(
+            top: 50,
+            right: 20,
+            child: TextButton(
+              onPressed: _goToLogin,
+              child: const Text(
+                "Passer",
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+
+          // 2. Les pages de l'Onboarding
+          PageView(
+            controller: controller,
+            onPageChanged: (index) => setState(() => currentPage = index),
+            children: [
+              buildPage(
+                color: const Color(0xFFFFEAD2),
+                icon: Icons.local_taxi,
+                title: "Uber_CM Taxi",
+                subtitle:
+                    "Déplacez-vous facilement dans toute la ville. Réservez en quelques secondes.",
+              ),
+              buildPage(
+                color: const Color(0xFFFFEAD2),
+                icon: Icons.motorcycle,
+                title: "Uber_CM Moto",
+                subtitle:
+                    "Évitez les embouteillages avec nos coursiers rapides.",
+              ),
+              buildPage(
+                color: const Color(0xFFFFEAD2),
+                icon: Icons.delivery_dining,
+                title: "Livraison Rapide",
+                subtitle:
+                    "Faites-vous livrer vos colis et repas en un clic. Service fiable et sécurisé.",
+              ),
+              buildPage(
+                color: const Color(0xFFFFEAD2),
+                icon: Icons.verified_user,
+                title: "Sécurité & Confiance",
+                subtitle:
+                    "Des chauffeurs vérifiés pour des trajets en toute sérénité. Votre sécurité est notre priorité.",
+              ),
+            ],
+          ),
+
+          // 3. Barre de navigation basse (Indicateurs + Boutons)
+          Positioned(
+            bottom: 50,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                // Indicateur de points
+                SmoothPageIndicator(
+                  controller: controller,
+                  count: 4, // Mis à jour à 4
+                  effect: const ExpandingDotsEffect(
+                    activeDotColor: Colors.orange,
+                    dotHeight: 8,
+                    dotWidth: 8,
+                    expansionFactor: 4,
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // Rangée des boutons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Bouton PRÉCÉDENT (Invisible sur la première page)
+                      Opacity(
+                        opacity: isFirstPage ? 0 : 1,
+                        child: TextButton(
+                          onPressed: isFirstPage
+                              ? null
+                              : () => controller.previousPage(
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeInOut,
+                                ),
+                          child: const Text(
+                            "Précédent",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Bouton SUIVANT / COMMENCER
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 15,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 2,
+                        ),
+                        onPressed: () {
+                          if (isLastPage) {
+                            _goToLogin();
+                          } else {
+                            controller.nextPage(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: Text(
+                          isLastPage ? "Commencer" : "Suivant",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+  // Composant visuel pour chaque page (inchangé mais nettoyé)
+  Widget buildPage({
+    required Color color,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            height: 200,
+            width: 200,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, size: 80, color: Colors.orange[800]),
+          ),
+          const SizedBox(height: 50),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 15,
+              color: Colors.black54,
+              height: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }
