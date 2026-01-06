@@ -23,3 +23,5 @@ flutter:
   # CORRECTION : Doit être indenté sous 'flutter:'
   assets:
     - assets/images/logo.png
+    - assets/images/google.png
+    - assets/images/facebook.png

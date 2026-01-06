@@ -19,94 +19,99 @@ class _UberOnboardingState extends State<UberOnboarding> {
 
   // CORRECTION : On définit la fonction ici pour qu'elle soit accessible partout
   void goToLogin() {
-    Navigator.push(
-      context,
+    Navigator.of(context).pushReplacement( // pushReplacement pour ne pas revenir à l'onboarding
       MaterialPageRoute(builder: (context) => const AuthScreen()),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    bool isLastPage = currentPage == 3;
-    bool isFirstPage = currentPage == 0;
+Widget build(BuildContext context) {
+  bool isLastPage = currentPage == 3;
+  bool isFirstPage = currentPage == 0;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Positioned(
-            top: 50,
-            right: 20,
-            child: TextButton(
-              onPressed: goToLogin, // Utilise la fonction définie plus haut
-              child: const Text(
-                "Passer",
-                style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+  return Scaffold(
+    backgroundColor: Colors.white,
+    body: Stack(
+      children: [
+        // 1. Le PageView en premier (tout en bas)
+        PageView(
+          controller: controller,
+          onPageChanged: (index) => setState(() => currentPage = index),
+          children: [
+            buildPage(color: const Color(0xFFFFEAD2), icon: Icons.local_taxi, title: "Uber_CM Taxi", subtitle: "Déplacez-vous facilement dans toute la ville."),
+            buildPage(color: const Color(0xFFFFEAD2), icon: Icons.motorcycle, title: "Uber_CM Moto", subtitle: "Évitez les embouteillages avec nos coursiers rapides."),
+            buildPage(color: const Color(0xFFFFEAD2), icon: Icons.delivery_dining, title: "Livraison Rapide", subtitle: "Faites-vous livrer vos colis en un clic."),
+            buildPage(color: const Color(0xFFFFEAD2), icon: Icons.verified_user, title: "Sécurité & Confiance", subtitle: "Votre sécurité est notre priorité."),
+          ],
+        ),
+
+        // 2. Le bouton "Passer" (maintenant placé APRES le PageView pour être au-dessus)
+        Positioned(
+          top: 50,
+          right: 20,
+          child: TextButton(
+            onPressed: () => goToLogin(), 
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.orange, // S'assure que la couleur est bien appliquée
+            ),
+            child: const Text(
+              "Passer",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
+        ),
 
-          PageView(
-            controller: controller,
-            onPageChanged: (index) => setState(() => currentPage = index),
+        // 3. Les indicateurs et boutons du bas
+        Positioned(
+          bottom: 50,
+          left: 0,
+          right: 0,
+          child: Column(
             children: [
-              buildPage(color: const Color(0xFFFFEAD2), icon: Icons.local_taxi, title: "Uber_CM Taxi", subtitle: "Déplacez-vous facilement dans toute la ville. Réservez en quelques secondes."),
-              buildPage(color: const Color(0xFFFFEAD2), icon: Icons.motorcycle, title: "Uber_CM Moto", subtitle: "Évitez les embouteillages avec nos coursiers rapides."),
-              buildPage(color: const Color(0xFFFFEAD2), icon: Icons.delivery_dining, title: "Livraison Rapide", subtitle: "Faites-vous livrer vos colis et repas en un clic. Service fiable et sécurisé."),
-              buildPage(color: const Color(0xFFFFEAD2), icon: Icons.verified_user, title: "Sécurité & Confiance", subtitle: "Des chauffeurs vérifiés pour des trajets en toute sérénité. Votre sécurité est notre priorité."),
+              SmoothPageIndicator(
+                controller: controller,
+                count: 4,
+                effect: const ExpandingDotsEffect(activeDotColor: Colors.orange, dotHeight: 8, dotWidth: 8, expansionFactor: 4),
+              ),
+              const SizedBox(height: 40),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Opacity(
+                      opacity: isFirstPage ? 0 : 1,
+                      child: TextButton(
+                        onPressed: isFirstPage ? null : () => controller.previousPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut),
+                        child: const Text("Précédent", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      onPressed: () {
+                        if (isLastPage) {
+                          goToLogin();
+                        } else {
+                          controller.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+                        }
+                      },
+                      child: Text(isLastPage ? "Commencer" : "Suivant", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                SmoothPageIndicator(
-                  controller: controller,
-                  count: 4,
-                  effect: const ExpandingDotsEffect(activeDotColor: Colors.orange, dotHeight: 8, dotWidth: 8, expansionFactor: 4),
-                ),
-                const SizedBox(height: 40),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Opacity(
-                        opacity: isFirstPage ? 0 : 1,
-                        child: TextButton(
-                          onPressed: isFirstPage ? null : () => controller.previousPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut),
-                          child: const Text("Précédent", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        ),
-                        onPressed: () {
-                          if (isLastPage) {
-                            goToLogin(); // CORRECTION : Appelle proprement la fonction
-                          } else {
-                            controller.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-                          }
-                        },
-                        child: Text(isLastPage ? "Commencer" : "Suivant", style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget buildPage({required Color color, required IconData icon, required String title, required String subtitle}) {
     return Container(

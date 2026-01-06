@@ -8,7 +8,10 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool isLogin = true; // Pour basculer entre Connexion et Inscription
+  bool isLogin = true;
+  // Variables pour afficher/cacher le mot de passe
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +23,6 @@ class _AuthScreenState extends State<AuthScreen> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              // Logo depuis tes assets
               Image.asset(
                 'assets/images/logo.png',
                 height: 100,
@@ -35,7 +37,7 @@ class _AuthScreenState extends State<AuthScreen> {
               const Text("Transport & Livraison au Cameroun", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 40),
 
-              // Sélecteur Connexion / Inscription
+              // Onglets
               Container(
                 height: 50,
                 decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(15)),
@@ -48,7 +50,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Formulaire dynamique
+              // Formulaire
               if (!isLogin) ...[
                 Row(
                   children: [
@@ -64,19 +66,33 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 20),
               
               if (!isLogin) ...[
-                buildTextField(Icons.phone_outlined, "Téléphone (optionnel)", "6XX XXX XXX"),
+                buildTextField(Icons.phone_outlined, "Téléphone", "6XX XXX XXX"),
                 const SizedBox(height: 20),
               ],
 
-              buildTextField(Icons.lock_outline, "Mot de passe", "••••••••", isPassword: true),
+              // Mot de passe avec bouton "Oeil"
+              buildTextField(
+                Icons.lock_outline, 
+                "Mot de passe", 
+                "••••••••", 
+                isPassword: true,
+                obscureText: _obscurePassword,
+                onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+              ),
               const SizedBox(height: 20),
 
               if (!isLogin) ...[
-                buildTextField(Icons.lock_outline, "Confirmer le mot de passe", "••••••••", isPassword: true),
+                buildTextField(
+                  Icons.lock_outline, 
+                  "Confirmer le mot de passe", 
+                  "••••••••", 
+                  isPassword: true,
+                  obscureText: _obscureConfirmPassword,
+                  onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                ),
                 const SizedBox(height: 20),
               ],
 
-              // Bouton Principal (Vert comme sur la capture)
               const SizedBox(height: 10),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -85,25 +101,24 @@ class _AuthScreenState extends State<AuthScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
                 onPressed: () {},
-                child: Text(isLogin ? "Se connecter" : "Créer un compte", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(isLogin ? "Se connecter" : "Créer un compte", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
 
               const SizedBox(height: 30),
               const Row(
                 children: [
                   Expanded(child: Divider()),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("OU CONTINUER AVEC", style: TextStyle(color: Colors.grey, fontSize: 12))),
+                  Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("OU", style: TextStyle(color: Colors.grey, fontSize: 12))),
                   Expanded(child: Divider()),
                 ],
               ),
               const SizedBox(height: 30),
 
-              // Boutons Sociaux
               Row(
                 children: [
-                  Expanded(child: socialButton("Google", "assets/images/google.png", Colors.white, Colors.black)),
+                  Expanded(child: socialButton("Google", "assets/images/google.png")),
                   const SizedBox(width: 15),
-                  Expanded(child: socialButton("Facebook", "assets/images/facebook.png", Colors.white, Colors.black)),
+                  Expanded(child: socialButton("Facebook", "assets/images/facebook.png")),
                 ],
               ),
               const SizedBox(height: 40),
@@ -114,7 +129,6 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // Widget pour les onglets
   Widget buildTabButton(String text, bool active) {
     return GestureDetector(
       onTap: () => setState(() => isLogin = text == "Connexion"),
@@ -122,7 +136,6 @@ class _AuthScreenState extends State<AuthScreen> {
         decoration: BoxDecoration(
           color: active ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)]
         ),
         alignment: Alignment.center,
         child: Text(text, style: TextStyle(fontWeight: FontWeight.bold, color: active ? Colors.black : Colors.grey)),
@@ -130,21 +143,27 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // Widget pour les champs de saisie
-  Widget buildTextField(IconData? icon, String label, String hint, {bool isPassword = false}) {
+  // Widget TextField amélioré
+  Widget buildTextField(IconData? icon, String label, String hint, {bool isPassword = false, bool obscureText = false, VoidCallback? onToggle}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
         TextField(
-          obscureText: isPassword,
+          obscureText: isPassword ? obscureText : false,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
+            // Ajout du bouton Oeil
+            suffixIcon: isPassword 
+              ? IconButton(
+                  icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                  onPressed: onToggle,
+                ) 
+              : null,
             filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            fillColor: Colors.grey[50],
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
           ),
@@ -153,17 +172,21 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  // Widget pour les boutons Google/Facebook
-  Widget socialButton(String label, String iconPath, Color bgColor, Color textColor) {
-    return OutlinedButton.icon(
+  Widget socialButton(String label, String imagePath) {
+    return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        side: BorderSide(color: Colors.grey.shade300),
       ),
       onPressed: () {},
-      icon: const Icon(Icons.ads_click, size: 20), // Remplace par une icône ou Image.asset
-      label: Text(label, style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(imagePath, height: 24), // Vrai logo
+          const SizedBox(width: 10),
+          Text(label, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 }
