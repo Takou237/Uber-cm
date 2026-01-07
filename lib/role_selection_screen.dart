@@ -15,8 +15,23 @@ class RoleSelectionScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.directions_car_filled, size: 80, color: Colors.orange),
-              const SizedBox(height: 20),
+              // REMPLACEMENT DE L'ICÔNE PAR TON LOGO
+              Image.asset(
+                'assets/images/logo.png',
+                height: 120, // Ajuste la taille selon tes préférences
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 120, width: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1), 
+                    borderRadius: BorderRadius.circular(20)
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.image_not_supported, color: Colors.orange, size: 50)
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 30),
               const Text(
                 "Bienvenue sur Uber_CM",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -66,6 +81,7 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 
+  // Ton widget roleCard reste identique avec les corrections withValues
   Widget roleCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -74,10 +90,10 @@ class RoleSelectionScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
+          border: Border.all(color: Colors.orange.withValues(alpha: 0.3), width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.orange.withOpacity(0.05),
+              color: Colors.orange.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -86,7 +102,7 @@ class RoleSelectionScreen extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.orange.withOpacity(0.1),
+              backgroundColor: Colors.orange.withValues(alpha: 0.1),
               radius: 30,
               child: Icon(icon, color: Colors.orange, size: 30),
             ),
