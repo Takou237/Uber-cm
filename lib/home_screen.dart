@@ -28,9 +28,19 @@ class HomeScreen extends StatelessWidget {
             // Barre de recherche
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                borderRadius: BorderRadius.circular(15), 
+                boxShadow: const [ // AJOUT DE CONST ICI
+                  BoxShadow(color: Colors.black12, blurRadius: 10)
+                ]
+              ),
               child: const TextField(
-                decoration: InputDecoration(icon: Icon(Icons.search, color: Colors.orange), hintText: "Saisir la destination", border: InputBorder.none),
+                decoration: InputDecoration(
+                  icon: Icon(Icons.search, color: Colors.orange), 
+                  hintText: "Saisir la destination", 
+                  border: InputBorder.none
+                ),
               ),
             ),
             
@@ -53,8 +63,11 @@ class HomeScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(20)),
-              child: const Column(
+              decoration: BoxDecoration(
+                color: Colors.orange, 
+                borderRadius: BorderRadius.circular(20)
+              ),
+              child: const Column( // Déjà en const, c'est parfait
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Promo de Noël !", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -73,7 +86,10 @@ class HomeScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
+          decoration: BoxDecoration(
+            color: Colors.white, 
+            borderRadius: BorderRadius.circular(15)
+          ),
           child: Icon(icon, color: Colors.orange, size: 30),
         ),
         const SizedBox(height: 8),
