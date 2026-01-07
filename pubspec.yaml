@@ -10,17 +10,15 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  # CORRECTION : On le déplace ici (il était dans dev_dependencies)
-  smooth_page_indicator: ^1.1.0 
+  smooth_page_indicator: ^2.0.1 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0 # Mis à jour pour éviter certains avertissements
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
-  # CORRECTION : Doit être indenté sous 'flutter:'
   assets:
     - assets/images/logo.png
     - assets/images/google.png

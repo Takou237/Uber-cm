@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'auth_screen.dart';
+import 'package:uber_cm/role_selection_screen.dart';
 
 void main() => runApp(
   const MaterialApp(home: UberOnboarding(), debugShowCheckedModeBanner: false),
@@ -18,11 +18,11 @@ class _UberOnboardingState extends State<UberOnboarding> {
   int currentPage = 0;
 
   // CORRECTION : On définit la fonction ici pour qu'elle soit accessible partout
-  void goToLogin() {
-    Navigator.of(context).pushReplacement( // pushReplacement pour ne pas revenir à l'onboarding
-      MaterialPageRoute(builder: (context) => const AuthScreen()),
-    );
-  }
+  void goToRoleSelection() {
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+  );
+}
 
   @override
 Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ Widget build(BuildContext context) {
           top: 50,
           right: 20,
           child: TextButton(
-            onPressed: () => goToLogin(), 
+            onPressed: () => goToRoleSelection(), 
             style: TextButton.styleFrom(
               foregroundColor: Colors.orange, // S'assure que la couleur est bien appliquée
             ),
@@ -95,7 +95,7 @@ Widget build(BuildContext context) {
                       ),
                       onPressed: () {
                         if (isLastPage) {
-                          goToLogin();
+                          goToRoleSelection();
                         } else {
                           controller.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
                         }

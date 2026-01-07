@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -100,7 +101,14 @@ class _AuthScreenState extends State<AuthScreen> {
                   minimumSize: const Size(double.infinity, 55),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  // Navigation vers la page d'accueil
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    (route) => false, // On vide l'historique pour ne pas revenir à l'auth
+                  );
+                },
                 child: Text(isLogin ? "Se connecter" : "Créer un compte", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
 
