@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   smooth_page_indicator: ^2.0.1 
+  appwrite: ^20.3.2
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_test:

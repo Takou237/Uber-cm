@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'auth_screen.dart';
-import 'driver_placeholder_screen.dart';
+import 'package:uber_cm/auth_screen.dart'; // Vers ton formulaire d'inscription
+import 'package:uber_cm/login_screen.dart'; // Vers ton formulaire de connexion
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -11,68 +11,73 @@ class RoleSelectionScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // REMPLACEMENT DE L'ICÔNE PAR TON LOGO
-              Image.asset(
-                'assets/images/logo.png',
-                height: 120, // Ajuste la taille selon tes préférences
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 120, width: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1), 
-                    borderRadius: BorderRadius.circular(20)
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.image_not_supported, color: Colors.orange, size: 50)
-                  ),
+              const SizedBox(height: 40),
+              const Text(
+                "Comment voulez-vous\nutiliser Uber_CM ?",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-              
-              const SizedBox(height: 30),
+              const SizedBox(height: 12),
               const Text(
-                "Bienvenue sur Uber_CM",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Comment souhaitez-vous utiliser l'application aujourd'hui ?",
+                "Choisissez le mode qui vous convient le mieux.",
                 style: TextStyle(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
 
-              // Option Client
-              roleCard(
+              // Liste des rôles
+              _buildRoleCard(
                 context,
-                title: "Je suis un Client",
-                subtitle: "Je cherche un taxi, une moto ou une livraison.",
-                icon: Icons.person,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AuthScreen()),
-                  );
-                },
+                title: "Passager",
+                subtitle: "Commander une course et voyager",
+                icon: Icons.person_pin_circle,
+                color: Colors.orange[50]!,
+                iconColor: Colors.orange[800]!,
+              ),
+              const SizedBox(height: 16),
+              _buildRoleCard(
+                context,
+                title: "Chauffeur",
+                subtitle: "Gagner de l'argent en conduisant",
+                icon: Icons.local_taxi,
+                color: Colors.blue[50]!,
+                iconColor: Colors.blue[800]!,
+              ),
+              const SizedBox(height: 16),
+              _buildRoleCard(
+                context,
+                title: "Livreur",
+                subtitle: "Livrer des colis et repas",
+                icon: Icons.delivery_dining,
+                color: Colors.green[50]!,
+                iconColor: Colors.green[800]!,
               ),
 
-              const SizedBox(height: 20),
+              const Spacer(),
 
-              // Option Chauffeur
-              roleCard(
-                context,
-                title: "Je suis un Chauffeur",
-                subtitle: "Je souhaite proposer mes services de transport.",
-                icon: Icons.drive_eta,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DriverPlaceholderScreen()),
-                  );
-                },
+              // Lien vers la connexion si on a déjà un compte
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    );
+                  },
+                  child: const Text(
+                    "Vous avez déjà un compte ? Connexion",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -81,43 +86,63 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 
-  // Ton widget roleCard reste identique avec les corrections withValues
-  Widget roleCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
+  // Widget personnalisé pour les cartes de rôle
+  Widget _buildRoleCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required Color iconColor,
+  }) {
+    return InkWell(
+      onTap: () {
+        // On navigue vers l'inscription en passant le rôle sélectionné
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AuthScreen(), // Tu pourras plus tard passer le rôle en paramètre
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.orange.withValues(alpha: 0.3), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.orange.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: iconColor.withOpacity(0.1)),
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              backgroundColor: Colors.orange.withValues(alpha: 0.1),
-              radius: 30,
-              child: Icon(icon, color: Colors.orange, size: 30),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 30),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 5),
-                  Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.orange),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
           ],
         ),
       ),
