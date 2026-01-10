@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
-import 'package:uber_cm/login_screen.dart'; // Import pour la redirection
+import 'package:uber_cm/login_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  final String?
-  initialRole; // Reçoit le rôle choisi (client, chauffeur, livreur)
-
+  final String? initialRole;
   const AuthScreen({this.initialRole, super.key});
 
   @override
@@ -16,12 +14,14 @@ class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController(); // Nouveau
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
 
   late String _selectedRole;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true; // Nouveau
 
   final AppwriteService _appwrite = AppwriteService();
 
@@ -33,7 +33,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
@@ -49,14 +48,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Inscription réussie ! Redirection vers la connexion...",
-          ),
+          content: Text("Inscription réussie ! Redirection vers la connexion..."),
           backgroundColor: Colors.green,
         ),
       );
 
-      // Petite pause pour laisser l'utilisateur lire le message de succès
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
@@ -111,18 +107,27 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  Widget _socialButton({required String image, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Image.asset(image, height: 30, width: 30),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          "Créer un compte",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
@@ -137,19 +142,17 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Bienvenue !",
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                    Center(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 90,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.person_add, size: 80, color: Colors.orange),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Veuillez remplir vos informations pour continuer.",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 10),
+                    const Text("Créer un compte", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
 
                     _buildTextField(
                       controller: _nameController,
@@ -163,8 +166,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       label: "Email",
                       icon: Icons.email_outlined,
                       type: TextInputType.emailAddress,
-                      validator: (v) =>
-                          !v!.contains("@") ? "Email invalide" : null,
+                      validator: (v) => !v!.contains("@") ? "Email invalide" : null,
                     ),
 
                     _buildTextField(
@@ -173,17 +175,26 @@ class _AuthScreenState extends State<AuthScreen> {
                       icon: Icons.lock_outline,
                       obscure: _obscurePassword,
                       suffix: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
+                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                      validator: (v) =>
-                          v!.length < 6 ? "Minimum 6 caractères" : null,
+                      validator: (v) => v!.length < 6 ? "Minimum 6 caractères" : null,
+                    ),
+
+                    // CHAMP CONFIRMATION MOT DE PASSE
+                    _buildTextField(
+                      controller: _confirmPasswordController,
+                      label: "Confirmer le mot de passe",
+                      icon: Icons.lock_clock_outlined,
+                      obscure: _obscureConfirmPassword,
+                      suffix: IconButton(
+                        icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                      ),
+                      validator: (v) {
+                        if (v != _passwordController.text) return "Les mots de passe ne correspondent pas";
+                        return null;
+                      },
                     ),
 
                     _buildTextField(
@@ -194,89 +205,53 @@ class _AuthScreenState extends State<AuthScreen> {
                       type: TextInputType.phone,
                       validator: (v) {
                         if (v!.isEmpty) return "Entrez votre numéro";
-                        if (!v.startsWith('+'))
-                          return "Doit commencer par + (ex: +237)";
+                        if (!v.startsWith('+')) return "Doit commencer par + (ex: +237)";
                         return null;
                       },
                     ),
 
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Votre rôle :",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 30),
 
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedRole,
-                          isExpanded: true,
-                          items: ['client', 'chauffeur', 'livreur'].map((role) {
-                            return DropdownMenuItem(
-                              value: role,
-                              child: Text(
-                                role.toUpperCase(),
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (val) =>
-                              setState(() => _selectedRole = val!),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // BOUTON S'INSCRIRE
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: 40,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         onPressed: _submit,
-                        child: const Text(
-                          "S'INSCRIRE",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: const Text("S'INSCRIRE", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text("Ou s'inscrire avec", style: TextStyle(color: Colors.grey)),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
 
-                    // BOUTON VERS CONNEXION
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _socialButton(image: 'assets/images/google.png', onTap: () {}),
+                        _socialButton(image: 'assets/images/facebook.png', onTap: () {}),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
                     Center(
                       child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Déjà un compte ? Connectez-vous",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen())),
+                        child: const Text("Déjà un compte ? Connectez-vous", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -290,6 +265,7 @@ class _AuthScreenState extends State<AuthScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     super.dispose();

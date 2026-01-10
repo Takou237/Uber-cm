@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/auth_screen.dart';
-import 'package:uber_cm/home_screen.dart'; // Import ajouté pour la redirection
+import 'package:uber_cm/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -19,28 +19,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
-      // 1. Appel au service Appwrite pour créer une session
       await _appwrite.loginUser(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
       if (!mounted) return;
-
-      // Message de succès
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Connexion réussie !"),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text("Connexion réussie !"), backgroundColor: Colors.green),
       );
 
-      // 2. Navigation vers la page d'accueil
-      // On utilise pushReplacement pour que l'utilisateur ne puisse pas revenir au login avec le bouton retour
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -48,14 +39,25 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Erreur : ${e.toString()}"),
-          backgroundColor: Colors.redAccent,
-        ),
+        SnackBar(content: Text("Erreur : ${e.toString()}"), backgroundColor: Colors.redAccent),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Widget _socialButton({required String image, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Image.asset(image, height: 30, width: 30),
+      ),
+    );
   }
 
   @override
@@ -71,111 +73,88 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 80),
-                    const Text(
-                      "Connexion",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(height: 50),
+                    Center(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 100,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.lock_person, size: 80, color: Colors.orange),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Heureux de vous revoir !",
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
+                    const SizedBox(height: 30),
+                    const Text("Connexion", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 40),
 
-                    // Champ Email
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: "Email",
-                        prefixIcon: const Icon(
-                          Icons.email_outlined,
-                          color: Colors.black,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        prefixIcon: const Icon(Icons.email_outlined, color: Colors.black),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      validator: (v) =>
-                          !v!.contains("@") ? "Email invalide" : null,
+                      validator: (v) => !v!.contains("@") ? "Email invalide" : null,
                     ),
                     const SizedBox(height: 20),
 
-                    // Champ Mot de passe
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: "Mot de passe",
-                        prefixIcon: const Icon(
-                          Icons.lock_outline,
-                          color: Colors.black,
-                        ),
+                        prefixIcon: const Icon(Icons.lock_outline, color: Colors.black),
                         suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                          icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      validator: (v) =>
-                          v!.isEmpty ? "Entrez votre mot de passe" : null,
+                      validator: (v) => v!.isEmpty ? "Entrez votre mot de passe" : null,
                     ),
 
                     const SizedBox(height: 40),
 
-                    // Bouton Connexion
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         onPressed: _handleLogin,
-                        child: const Text(
-                          "SE CONNECTER",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: const Text("SE CONNECTER", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 25),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text("Ou se connecter avec", style: TextStyle(color: Colors.grey)),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 25),
 
-                    // Lien vers Inscription
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _socialButton(image: 'assets/images/google.png', onTap: () {}),
+                        _socialButton(image: 'assets/images/facebook.png', onTap: () {}),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AuthScreen(),
-                          ),
-                        ),
-                        child: const Text(
-                          "Pas encore de compte ? Inscrivez-vous",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AuthScreen())),
+                        child: const Text("Pas encore de compte ? Inscrivez-vous", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
