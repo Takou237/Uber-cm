@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/profile_screen.dart';
+import 'package:url_launcher/url_launcher.dart'; // Pour WhatsApp
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,89 +23,166 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadUserData() async {
     try {
       final user = await _appwrite.account.get();
-      if (mounted) {
-        setState(() => _userName = user.name);
-      }
+      if (mounted) setState(() => _userName = user.name);
     } catch (e) {
-      // debugPrint est préférable à print en Flutter
-      debugPrint("Erreur chargement utilisateur: $e");
+      debugPrint("Erreur: $e");
     }
   }
 
-  String _getInitials(String name) {
-    if (name.isEmpty || name == "...") return "?";
-    List<String> parts = name.trim().split(RegExp(r'\s+'));
-    String firstLetter = parts[0][0].toUpperCase();
-    if (parts.length > 1) {
-      String secondLetter = parts[1][0].toUpperCase();
-      if (firstLetter != secondLetter) return firstLetter + secondLetter;
+  // Fonction pour ouvrir WhatsApp Support
+  void _openWhatsApp() async {
+    var whatsappUrl = "whatsapp://send?phone=+237654266241&text=Bonjour Uber CM, j'ai besoin d'aide.";
+    if (!await launchUrl(Uri.parse(whatsappUrl))) {
+      debugPrint("Impossible d'ouvrir WhatsApp");
     }
-    return firstLetter;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.only(top: 60, left: 20, right: 20, bottom: 30),
-            decoration: const BoxDecoration(
-              color: Colors.orange,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen())),
-                  child: CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Colors.white.withValues(alpha: 0.3),
-                    child: Text(
-                      _getInitials(_userName),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Bonjour,", style: TextStyle(color: Colors.white, fontSize: 18)),
-                    Text(_userName, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const Spacer(),
-                const Icon(Icons.notifications_none, color: Colors.white, size: 30),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Row( // Ajout du CONST ici
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // HEADER MINIMALISTE (Uber Style)
+            Padding(
+              padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.location_on, color: Colors.orange),
-                  SizedBox(width: 10),
-                  Text(
-                    "Où allez-vous ?",
-                    style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.w500),
+                  const Text("Uber CM", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen())),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.orange,
+                      child: Text(_userName[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
+
+            // ACTION PRINCIPALE : RECHERCHE
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEEEEE),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "Où allez-vous ?",
+                    hintStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black54),
+                    border: InputBorder.none,
+                    icon: const Icon(Icons.search, color: Colors.black, size: 30),
+                    suffixIcon: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.access_time_filled, size: 16, color: Colors.black),
+                          SizedBox(width: 5),
+                          Text("Maintenant", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // SERVICES (LES 3 GRANDS)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildServiceCard("Course", Icons.directions_car),
+                  _buildServiceCard("Colis", Icons.inventory_2),
+                  _buildServiceCard("Réserver", Icons.calendar_month),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            // ADRESSES RAPIDES
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text("Suggestions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            _buildLocationItem(Icons.home, "Maison Essos", "Yaoundé, Cameroun"),
+            _buildLocationItem(Icons.work, "Cité Universitaire", "Ngoa-Ekelle"),
+            _buildLocationItem(Icons.star, "Marché Mokolo", "Point de rendez-vous fréquent"),
+
+            const SizedBox(height: 20),
+
+            // PROMO DISCRÈTE (BANNER)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.local_offer, color: Colors.orange),
+                    SizedBox(width: 10),
+                    Text("Promo : -20% sur votre trajet !", style: TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      
+      // SUPPORT WHATSAPP (Flottant)
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openWhatsApp,
+        backgroundColor: const Color(0xFF25D366),
+        child: const Icon(Icons.support_agent, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildServiceCard(String title, IconData icon) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F6F6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 40, color: Colors.black),
+          const SizedBox(height: 8),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+
+  Widget _buildLocationItem(IconData icon, String title, String subtitle) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: const Color(0xFFEEEEEE),
+        child: Icon(icon, color: Colors.black),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {},
     );
   }
 }

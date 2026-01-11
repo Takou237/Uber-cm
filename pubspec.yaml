@@ -13,6 +13,7 @@ dependencies:
   smooth_page_indicator: ^2.0.1 
   appwrite: ^20.3.2
   provider: ^6.1.5+1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
