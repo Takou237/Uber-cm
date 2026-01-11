@@ -1,3 +1,10 @@
+import 'package:flutter/material.dart'; // Importation indispensable
+import 'package:uber_cm/services/appwrite_service.dart';
+
+// Définition d'un notifier local si tu ne l'as pas dans main.dart
+// Pour un projet réel, il est préférable de le placer dans un fichier de constantes
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -24,8 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final user = await _appwrite.account.get();
       if (mounted) {
         setState(() {
-          // Si le nom est vide sur Appwrite, on affiche "Utilisateur"
-          _name = (user.name != null && user.name.isNotEmpty) ? user.name : "Utilisateur";
+          _name = (user.name.isNotEmpty) ? user.name : "Utilisateur";
           _phone = user.phone;
           _isLoading = false;
         });
@@ -64,45 +70,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- GRAND TITRE ---
                   const Text(
                     "Paramètres",
                     style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 40),
-
-                  // --- AFFICHAGE NOM ---
-                  _buildReadOnlyInfo(
-                    label: "NOM",
-                    value: _name,
-                    textColor: txtColor,
-                  ),
-                  
+                  _buildReadOnlyInfo(label: "NOM", value: _name, textColor: txtColor),
                   const SizedBox(height: 30),
-
-                  // --- AFFICHAGE TÉLÉPHONE ---
-                  _buildReadOnlyInfo(
-                    label: "TÉLÉPHONE",
-                    value: _phone,
-                    textColor: txtColor,
-                  ),
-
+                  _buildReadOnlyInfo(label: "TÉLÉPHONE", value: _phone, textColor: txtColor),
                   const SizedBox(height: 40),
                   const Divider(thickness: 0.5),
                   const SizedBox(height: 20),
-
-                  // --- OPTIONS ---
                   _buildRowOption(
                     icon: isDark ? Icons.dark_mode : Icons.light_mode,
                     title: "Mode Sombre",
                     textColor: txtColor,
                     trailing: Switch(
                       value: isDark,
-                      activeColor: Colors.orange,
+                      activeThumbColor: Colors.orange,
                       onChanged: (v) => themeNotifier.value = v ? ThemeMode.dark : ThemeMode.light,
                     ),
                   ),
-
                   _buildRowOption(
                     icon: Icons.language,
                     title: "Langue",
@@ -118,26 +106,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Widget pour afficher les infos sans pouvoir les modifier
-  Widget _buildReadOnlyInfo({
-    required String label,
-    required String value,
-    required Color textColor,
-  }) {
+  Widget _buildReadOnlyInfo({required String label, required String value, required Color textColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-        ),
+        Text(label, style: const TextStyle(color: Colors.orange, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w400),
-        ),
+        Text(value, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w400)),
         const SizedBox(height: 10),
-        Container(height: 1, color: Colors.grey.withOpacity(0.2)),
+        Container(height: 1, color: Colors.grey.withValues(alpha: 0.2)),
       ],
     );
   }

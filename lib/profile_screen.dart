@@ -81,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
       child: Column(
         children: [
-          CircleAvatar(radius: 30, backgroundColor: Colors.orange.withOpacity(0.1), child: Icon(icon, color: Colors.orange, size: 30)),
+          CircleAvatar(radius: 30, backgroundColor: Colors.orange.withValues(alpha:0.1), child: Icon(icon, color: Colors.orange, size: 30)),
           const SizedBox(height: 8),
           Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
         ],
@@ -313,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(isDark ? Icons.dark_mode : Icons.light_mode, color: Colors.orange),
                     title: Text("Mode Sombre", style: TextStyle(color: txtColor)),
-                    trailing: Switch(value: isDark, activeColor: Colors.orange, onChanged: (v) => themeNotifier.value = v ? ThemeMode.dark : ThemeMode.light),
+                    trailing: Switch(value: isDark, activeThumbColor: Colors.orange, onChanged: (v) => themeNotifier.value = v ? ThemeMode.dark : ThemeMode.light),
                   ),
                   
                   // LANGUE
@@ -343,7 +343,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(color: color, fontSize: 18),
           decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
         ),
-        Container(height: 1, color: Colors.grey.withOpacity(0.2)),
+        Container(height: 1, color: Colors.grey.withValues(alpha:0.2)),
       ],
     );
   }

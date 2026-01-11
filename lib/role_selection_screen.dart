@@ -27,7 +27,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha:0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Image.asset(
@@ -137,8 +137,8 @@ class RoleSelectionScreen extends StatelessWidget {
     required bool isDark,
     required bool isAvailable,
   }) {
-    final cardBg = isDark ? Colors.white.withOpacity(0.05) : Colors.grey[50];
-    final borderColor = isDark ? Colors.white10 : Colors.black.withOpacity(0.05);
+    final cardBg = isDark ? Colors.white.withValues(alpha:0.05) : Colors.grey[50];
+    final borderColor = isDark ? Colors.white10 : Colors.black.withValues(alpha:0.05);
 
     return InkWell(
       onTap: () {
@@ -161,7 +161,7 @@ class RoleSelectionScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha:0.15),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Icon(icon, color: accentColor, size: 28),
@@ -186,7 +186,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.2),
+                            color: Colors.grey.withValues(alpha:0.2),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(

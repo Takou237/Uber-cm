@@ -29,7 +29,7 @@ class _UberOnboardingState extends State<UberOnboarding> {
     final bgColor = isDark ? const Color(0xFF121212) : Colors.white;
     final titleColor = isDark ? Colors.white : Colors.black87;
     final subtitleColor = isDark ? Colors.white70 : Colors.black54;
-    final circleColor = isDark ? Colors.orange.withOpacity(0.2) : const Color(0xFFFFEAD2);
+    final circleColor = isDark ? Colors.orange.withValues(alpha: .2) : const Color(0xFFFFEAD2);
 
     bool isLastPage = currentPage == 3;
     bool isFirstPage = currentPage == 0;
