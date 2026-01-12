@@ -13,6 +13,8 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
   final AppwriteService _appwrite = AppwriteService();
   List<models.Document> _places = [];
   bool _isLoading = true;
+  
+  get textColor => null;
 
   @override
   void initState() {
@@ -31,9 +33,11 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
     }
   }
 
+  // Dans saved_places_screen.dart, modifie le _showAddPlaceDialog :
+
   void _showAddPlaceDialog() {
     final nameController = TextEditingController();
-    final addressController = TextEditingController();
+    final addressController = TextEditingController(); // Sera rempli par la carte plus tard
 
     showModalBottomSheet(
       context: context,
@@ -53,32 +57,57 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
               controller: nameController,
               decoration: const InputDecoration(labelText: "Nom (ex: Maison, Bureau)", border: OutlineInputBorder()),
             ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: addressController,
-              decoration: const InputDecoration(labelText: "Adresse complète", border: OutlineInputBorder()),
+            const SizedBox(height: 15),
+            
+            // --- SECTION LOCATION / MAPS ---
+            InkWell(
+              onTap: () {
+                // TODO: Ouvrir Google Maps Picker ici
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Bientôt : Sélection sur la carte Google Maps"))
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.map_outlined, color: Colors.orange),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        addressController.text.isEmpty ? "Choisir sur la carte" : addressController.text,
+                        style: TextStyle(color: addressController.text.isEmpty ? Colors.grey : textColor),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
+            
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.all(15)),
                 onPressed: () async {
-                  if (nameController.text.isNotEmpty && addressController.text.isNotEmpty) {
+                  // Pour l'instant, on met une adresse test pour vérifier que la synchro marche
+                  if (nameController.text.isNotEmpty) {
                     await _appwrite.savePlace(
                       name: nameController.text,
-                      address: addressController.text,
-                      latitude: 0.0,
-                      longitude: 0.0,
+                      address: "Sélection carte en cours...", // Sera remplacé par la vraie adresse
+                      latitude: 3.848,
+                      longitude: 11.502,
                     );
-                    
-                    // Correction de l'erreur "async gaps"
                     if (!context.mounted) return;
                     Navigator.pop(context);
                     _fetchPlaces(); 
                   }
                 },
-                child: const Text("Enregistrer", style: TextStyle(color: Colors.white)),
+                child: const Text("ENREGISTRER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 20),

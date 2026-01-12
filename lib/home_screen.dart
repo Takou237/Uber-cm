@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:uber_cm/saved_places_screen.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/profile_screen.dart';
-import 'package:url_launcher/url_launcher.dart'; 
+import 'package:url_launcher/url_launcher.dart';
+import 'package:appwrite/models.dart' as models;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AppwriteService _appwrite = AppwriteService();
-  String _userName = "Utilisateur"; // Valeur par défaut plus propre
+  String _userName = "Utilisateur";
 
   @override
   void initState() {
@@ -44,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Détection des couleurs du thème actuel
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // HEADER
+            // --- HEADER ---
             Padding(
               padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 10),
               child: Row(
@@ -69,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.orange,
-                      child: Text(_userName[0].toUpperCase(), 
+                      child: Text(_userName.isNotEmpty ? _userName[0].toUpperCase() : "U", 
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ),
@@ -77,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // BARRE DE RECHERCHE
+            // --- BARRE DE RECHERCHE ---
             Padding(
               padding: const EdgeInsets.all(20),
               child: Container(
@@ -100,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // SERVICES
+            // --- SERVICES ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -115,19 +116,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 25),
 
-            // SUGGESTIONS
+            // --- SECTION SUGGESTIONS DYNAMIQUE ---
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text("Suggestions", 
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Text("Vos adresses enregistrées", 
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
             ),
-            _buildLocationItem(Icons.home, "Maison Essos", "Yaoundé, Cameroun", isDark, textColor),
-            _buildLocationItem(Icons.work, "Cité Universitaire", "Ngoa-Ekelle", isDark, textColor),
-            _buildLocationItem(Icons.star, "Marché Mokolo", "Point de rendez-vous fréquent", isDark, textColor),
+
+            FutureBuilder<List<models.Document>>(
+              future: _appwrite.getFavoritePlaces(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: LinearProgressIndicator(color: Colors.orange, backgroundColor: Colors.transparent),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return _buildLocationItem(
+                    Icons.star_border, 
+                    "Ajouter un favori", 
+                    "Enregistrez vos lieux fréquents ici", 
+                    isDark, 
+                    textColor,
+                    () => Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (context) => const SavedPlacesScreen()) // On change ProfileScreen par SavedPlacesScreen
+                    )
+                  );
+                }
+
+                return Column(
+                  children: snapshot.data!.map((doc) {
+                    return _buildLocationItem(
+                      Icons.location_on, 
+                      doc.data['name'] ?? "Lieu", 
+                      doc.data['address'] ?? "Cameroun", 
+                      isDark, 
+                      textColor,
+                      () { /* TODO: Lancer la recherche vers cette adresse */ }
+                    );
+                  }).toList(),
+                );
+              },
+            ),
 
             const SizedBox(height: 20),
 
-            // BANNIÈRE PROMO
+            // --- BANNIÈRE PROMO ---
             _buildPromoBanner(isDark, textColor),
             const SizedBox(height: 30),
           ],
@@ -181,16 +218,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLocationItem(IconData icon, String title, String subtitle, bool isDark, Color textColor) {
+  Widget _buildLocationItem(IconData icon, String title, String subtitle, bool isDark, Color textColor, VoidCallback onTap) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
         child: Icon(icon, color: Colors.orange),
       ),
       title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-      subtitle: Text(subtitle, style: TextStyle(color: textColor.withValues(alpha: 0.6))),
+      subtitle: Text(subtitle, 
+        maxLines: 1, 
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: textColor.withValues(alpha: 0.6))),
       trailing: Icon(Icons.chevron_right, color: textColor.withValues(alpha: 0.3)),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 
