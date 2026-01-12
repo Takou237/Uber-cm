@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uber_cm/saved_places_screen.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/login_screen.dart';
-import 'package:uber_cm/settingscreen.dart'; // IMPORTANT : pour accéder à themeNotifier
+import 'package:uber_cm/settingscreen.dart'; // Pour themeNotifier
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,11 +12,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final AppwriteService appwrite = AppwriteService();
+
   @override
   Widget build(BuildContext context) {
-    final AppwriteService appwrite = AppwriteService();
-    
-    // Détection automatique du thème global via le contexte
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black;
     final subTextColor = isDark ? Colors.white70 : Colors.grey;
@@ -29,25 +28,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         backgroundColor: cardColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: textColor),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20),
             
-            // --- HEADER DYNAMIQUE (APPWRITE) ---
+            // --- HEADER UTILISATEUR ---
             FutureBuilder(
               future: appwrite.account.get(),
               builder: (context, snapshot) {
-                String initiales = "U";
-                String nom = "Utilisateur";
-                String email = "Chargement...";
-                if (snapshot.hasData) {
-                  nom = snapshot.data!.name.isNotEmpty ? snapshot.data!.name : "Passager";
-                  email = snapshot.data!.email;
-                  initiales = nom[0].toUpperCase();
-                }
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                final user = snapshot.data!;
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(20),
@@ -55,19 +47,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        radius: 40, 
+                        radius: 35, 
                         backgroundColor: Colors.orange, 
-                        child: Text(initiales, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold))
+                        child: Text(user.name[0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 24))
                       ),
                       const SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(nom, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
-                            Text(email, style: TextStyle(color: subTextColor, fontSize: 14)),
-                          ],
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(user.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                          Text(user.email, style: TextStyle(color: subTextColor, fontSize: 13)),
+                        ],
                       ),
                     ],
                   ),
@@ -78,55 +68,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 25),
             _buildSectionTitle("Services"),
             _buildOptionItem(context, Icons.credit_card, "Moyens de paiement", () {}),
-            
             _buildOptionItem(context, Icons.location_on_outlined, "Adresses enregistrées", () {
-              // Retrait du 'const' si SavedPlacesScreen n'est pas un constructeur constant
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SavedPlacesScreen()));
             }),
-            
-            _buildOptionItem(context, Icons.settings_outlined, "Paramètres", () {
+            _buildOptionItem(context, Icons.settings_outlined, "Paramètres avancés", () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsDetailScreen()));
             }),
 
             const SizedBox(height: 15),
             _buildSectionTitle("Réglages & Aide"),
             
-            // --- SWITCH DU THÈME (CORRIGÉ POUR ÊTRE GLOBAL) ---
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
               child: SwitchListTile(
-                title: Text(isDark ? "Mode Sombre" : "Mode Clair", style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-                secondary: Icon(isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined, color: Colors.orange),
+                title: Text("Mode Sombre", style: TextStyle(color: textColor)),
+                secondary: const Icon(Icons.dark_mode_outlined, color: Colors.orange),
                 value: isDark,
                 activeColor: Colors.orange,
                 onChanged: (bool value) {
-                  // ACTION : On met à jour le Notifier global utilisé dans ton main.dart
                   themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
                 },
               ),
             ),
             
-            _buildOptionItem(context, Icons.language, "Langue", () {
-              _showLanguageBottomSheet(context);
-            }),
-            
-            _buildOptionItem(context, Icons.notifications_none, "Notifications", () {}),
+            _buildOptionItem(context, Icons.language, "Langue", () {}),
             _buildOptionItem(context, Icons.help_outline, "Aide", () {}),
-            
-            const SizedBox(height: 20),
-            Text("Version 1.0.0", style: TextStyle(color: subTextColor, fontSize: 12)),
+
             const SizedBox(height: 30),
+            Text("Version 1.0.0", style: TextStyle(color: subTextColor, fontSize: 11)),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // --- LES WIDGETS DE SOUTIEN ---
-
   Widget _buildSectionTitle(String title) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     child: Align(alignment: Alignment.centerLeft, child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.orange))),
   );
 
@@ -137,35 +116,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Icon(icon, color: Colors.orange),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
+        title: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+        trailing: const Icon(Icons.chevron_right, size: 18),
         onTap: onTap,
-      ),
-    );
-  }
-
-  void _showLanguageBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).cardColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Sélectionner une langue", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            ListTile(title: const Text("Français"), leading: const Text("🇫🇷"), onTap: () => Navigator.pop(context)),
-            ListTile(title: const Text("English"), leading: const Text("🇺🇸"), onTap: () => Navigator.pop(context)),
-          ],
-        ),
       ),
     );
   }
 }
 
-// --- LA PAGE DE DÉTAIL DES PARAMÈTRES ---
+// --- ÉCRAN DE DÉTAIL DES PARAMÈTRES ---
 
 class SettingsDetailScreen extends StatelessWidget {
   const SettingsDetailScreen({super.key});
@@ -180,7 +139,7 @@ class SettingsDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? Colors.black : const Color(0xFFF6F6F6),
       appBar: AppBar(
-        title: const Text("Paramètres"),
+        title: const Text("Sécurité & Compte"),
         backgroundColor: cardColor,
         foregroundColor: textColor,
         elevation: 0,
@@ -188,39 +147,59 @@ class SettingsDetailScreen extends StatelessWidget {
       body: FutureBuilder(
         future: appwrite.account.get(),
         builder: (context, snapshot) {
-          String nom = snapshot.hasData ? snapshot.data!.name : "Chargement...";
-          String phone = snapshot.hasData ? snapshot.data!.phone : "...";
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final user = snapshot.data!;
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              _buildSectionHeader("Informations de contact"),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   children: [
-                    _infoRow("Nom", nom, textColor),
+                    _infoRow("Nom", user.name, textColor), // Ajouté au-dessus de l'email
                     const Divider(),
-                    _infoRow("Numéro", phone, textColor),
+                    _infoRow("Email", user.email, textColor),
+                    const Divider(),
+                    _infoRow("Mobile", user.phone.isEmpty ? "Non défini" : user.phone, textColor),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              _settingTile(isDark, Icons.email_outlined, "Adresse e-mail", "Modifier"),
-              _settingTile(isDark, Icons.verified_user_outlined, "Vérification 2 étapes", "Désactivé"),
-              _settingTile(isDark, Icons.phone_android_outlined, "Changer de numéro", "Modifier"),
-              _settingTile(isDark, Icons.delete_outline, "Supprimer le compte", "Permanent"),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 25),
+              _buildSectionHeader("Sécurité du compte"),
+              
+              // TUILLE VÉRIFICATION 2 ÉTAPES (REMISE)
+              _settingTile(context, isDark, Icons.verified_user_outlined, "Vérification à deux étapes", "Renforcez la sécurité", () {
+                // Logique 2FA à implémenter
+              }),
+              
+              // OPTION CHANGER DE NUMÉRO
+              _settingTile(context, isDark, Icons.phone_android_outlined, "Changer de numéro", "Nécessite votre mot de passe", () {
+                _showUpdatePhoneDialog(context, appwrite, user.email, isDark, textColor);
+              }),
+
+              const SizedBox(height: 25),
+
+              _buildSectionHeader("Actions critiques"),
               Container(
                 decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.grey),
-                  title: Text("Se déconnecter", style: TextStyle(color: textColor, fontWeight: FontWeight.w500)),
-                  trailing: const Icon(Icons.chevron_right, size: 18),
-                  onTap: () async {
-                    await appwrite.logout();
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
-                  },
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.logout, color: Colors.orange),
+                      title: Text("Se déconnecter", style: TextStyle(color: textColor)),
+                      onTap: () => _showLogoutDialog(context, appwrite, isDark, textColor),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.delete_forever, color: Colors.red),
+                      title: const Text("Supprimer le compte", style: TextStyle(color: Colors.red)),
+                      onTap: () => _showDeleteDialog(context, appwrite, user.email, isDark, textColor),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -230,25 +209,115 @@ class SettingsDetailScreen extends StatelessWidget {
     );
   }
 
+  void _showUpdatePhoneDialog(BuildContext context, AppwriteService appwrite, String email, bool isDark, Color textColor) {
+    final phoneController = TextEditingController();
+    final passController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+        title: Text("Nouveau numéro", style: TextStyle(color: textColor)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: phoneController, style: TextStyle(color: textColor), decoration: const InputDecoration(hintText: "+237 6xx xxx xxx")),
+            const SizedBox(height: 10),
+            TextField(controller: passController, obscureText: true, style: TextStyle(color: textColor), decoration: const InputDecoration(hintText: "Mot de passe")),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ANNULER")),
+          TextButton(
+            onPressed: () async {
+              try {
+                await appwrite.account.updatePhone(phone: phoneController.text, password: passController.text);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Numéro mis à jour !")));
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Échec : Mot de passe incorrect"), backgroundColor: Colors.red));
+              }
+            },
+            child: const Text("VALIDER", style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, AppwriteService appwrite, String email, bool isDark, Color textColor) {
+    final passController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+        title: const Text("Supprimer ?", style: TextStyle(color: Colors.red)),
+        content: TextField(controller: passController, obscureText: true, style: TextStyle(color: textColor), decoration: const InputDecoration(hintText: "Entrez votre mot de passe")),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ANNULER")),
+          TextButton(
+            onPressed: () async {
+              try {
+                await appwrite.account.createEmailPasswordSession(email: email, password: passController.text);
+                await appwrite.account.updateStatus();
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Mot de passe incorrect"), backgroundColor: Colors.red));
+              }
+            },
+            child: const Text("SUPPRIMER", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, AppwriteService appwrite, bool isDark, Color textColor) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+        title: Text("Déconnexion", style: TextStyle(color: textColor)),
+        content: const Text("Quitter la session actuelle ?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("NON")),
+          TextButton(
+            onPressed: () async {
+              await appwrite.logout();
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
+            },
+            child: const Text("OUI", style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) => Padding(
+    padding: const EdgeInsets.only(left: 8, bottom: 8),
+    child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange)),
+  );
+
   Widget _infoRow(String label, String val, Color textC) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey)),
-        Text(val, style: TextStyle(color: textC, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        Text(val, style: TextStyle(color: textC, fontWeight: FontWeight.bold, fontSize: 13)),
       ],
     ),
   );
 
-  Widget _settingTile(bool isDark, IconData icon, String title, String sub) => Container(
+  Widget _settingTile(BuildContext context, bool isDark, IconData icon, String title, String sub, VoidCallback onTap) => Container(
     margin: const EdgeInsets.symmetric(vertical: 4),
     decoration: BoxDecoration(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, borderRadius: BorderRadius.circular(12)),
     child: ListTile(
       leading: Icon(icon, color: Colors.orange),
-      title: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 15)),
+      title: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 14)),
       subtitle: Text(sub, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-      trailing: const Icon(Icons.chevron_right, size: 18),
+      trailing: const Icon(Icons.chevron_right, size: 16),
+      onTap: onTap,
     ),
   );
 }
