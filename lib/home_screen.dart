@@ -76,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "Où allez-vous ?",
-                    hintStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black54),
+                    hintStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
                     border: InputBorder.none,
-                    icon: const Icon(Icons.search, color: Colors.black, size: 30),
+                    icon: const Icon(Icons.search, color: Colors.orange, size: 30),
                     suffixIcon: Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -86,9 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.access_time_filled, size: 16, color: Colors.black),
+                          Icon(Icons.access_time_filled, size: 16, color: Colors.orange),
                           SizedBox(width: 5),
-                          Text("Maintenant", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                          Text("Maintenant", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 40, color: Colors.black),
+          Icon(icon, size: 40, color: Colors.orange),
           const SizedBox(height: 8),
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
@@ -177,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: const Color(0xFFEEEEEE),
-        child: Icon(icon, color: Colors.black),
+        child: Icon(icon, color: Colors.orange),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle),
