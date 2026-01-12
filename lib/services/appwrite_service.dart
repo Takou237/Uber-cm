@@ -8,7 +8,9 @@ class AppwriteService {
   late Databases databases;
   late Functions functions;
 
-  final String databaseId = '695d14e20018d8678d2c';
+  // Tes IDs réels
+  final String databaseId = '695d1b430005eb249f4b';
+  final String usersCollectionId = 'profiles';
   final String placesCollectionId = 'user_places';
 
   AppwriteService() {
@@ -24,43 +26,76 @@ class AppwriteService {
 
   // --- AUTHENTIFICATION ---
 
-  // Inscription
-  Future<void> registerUser(String email, String password, String name, String role, String phone) async {
+  Future<models.User?> getCurrentUser() async {
     try {
-      await account.create(
+      return await account.get();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<models.Document?> getUserProfile(String userId) async {
+    try {
+      return await databases.getDocument(
+        databaseId: databaseId,
+        collectionId: usersCollectionId,
+        documentId: userId,
+      );
+    } catch (e) {
+      debugPrint("Erreur récupération profil: $e");
+      return null;
+    }
+  }
+
+  Future<void> registerUser(
+    String email,
+    String password,
+    String name,
+    String role,
+    String phone,
+  ) async {
+    try {
+      final user = await account.create(
         userId: ID.unique(),
         email: email,
         password: password,
         name: name,
       );
-      // Optionnel: On peut ajouter le téléphone ou le rôle dans une collection 'users' ici
-      debugPrint("Utilisateur créé avec succès");
+
+      await databases.createDocument(
+        databaseId: databaseId,
+        collectionId: usersCollectionId,
+        documentId: user.$id,
+        data: {
+          'userId': user.$id,
+          'name': name,
+          'email': email,
+          'role': role,
+          'phone': phone,
+          'createdAt': DateTime.now().toIso8601String(),
+        },
+      );
+      debugPrint("Utilisateur et profil créés !");
     } catch (e) {
       debugPrint("Erreur Inscription: $e");
-      throw Exception("Échec de l'inscription");
+      throw Exception("Échec de l'inscription : $e");
     }
   }
 
-  // Connexion (Crucial pour la session persistante)
   Future<void> loginUser(String email, String password) async {
     try {
-      // Création d'une session email
       await account.createEmailPasswordSession(
         email: email,
         password: password,
       );
-      debugPrint("Connexion réussie");
     } catch (e) {
-      debugPrint("Erreur Connexion: $e");
-      throw Exception("Email ou mot de passe incorrect");
+      throw Exception("Identifiants incorrects");
     }
   }
 
-  // Déconnexion
   Future<void> logout() async {
     try {
       await account.deleteSession(sessionId: 'current');
-      debugPrint("Déconnexion réussie");
     } catch (e) {
       debugPrint("Erreur Déconnexion: $e");
     }
@@ -68,37 +103,34 @@ class AppwriteService {
 
   // --- GESTION DES LIEUX (FAVORIS) ---
 
-  // Récupérer les lieux
   Future<List<models.Document>> getFavoritePlaces() async {
     try {
       final user = await account.get();
-      
-      // ignore: deprecated_member_use
       final response = await databases.listDocuments(
         databaseId: databaseId,
         collectionId: placesCollectionId,
         queries: [
           Query.equal('userId', user.$id),
+          Query.orderDesc('createdAt'),
         ],
       );
-      return response.documents; 
+      return response.documents;
     } catch (e) {
       debugPrint("Erreur lecture lieux: $e");
       return [];
     }
   }
 
-  // Enregistrer un lieu
   Future<void> savePlace({
-    required String name, 
-    required String address, 
-    required double latitude, 
-    required double longitude
+    required String name,
+    required String address,
+    required double latitude,
+    required double longitude,
   }) async {
     try {
+      // Vérification de l'utilisateur avant l'envoi
       final user = await account.get();
-      
-      // ignore: deprecated_member_use
+
       await databases.createDocument(
         databaseId: databaseId,
         collectionId: placesCollectionId,
@@ -112,10 +144,28 @@ class AppwriteService {
           'createdAt': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint("Lieu sauvegardé !");
+      debugPrint("Lieu sauvegardé avec succès dans Appwrite");
     } catch (e) {
-      debugPrint("Erreur sauvegarde lieu: $e");
+      // Affiche l'erreur réelle dans ton terminal pour débugger
+      debugPrint("ERREUR DÉTAILLÉE APPWRITE: $e");
+
+      if (e is AppwriteException) {
+        throw Exception("Erreur Appwrite (${e.code}): ${e.message}");
+      }
       throw Exception("Impossible de sauvegarder ce lieu.");
+    }
+  }
+
+  Future<void> deletePlace(String documentId) async {
+    try {
+      await databases.deleteDocument(
+        databaseId: databaseId,
+        collectionId: placesCollectionId,
+        documentId: documentId,
+      );
+    } catch (e) {
+      debugPrint("Erreur suppression: $e");
+      throw Exception("Erreur lors de la suppression.");
     }
   }
 }

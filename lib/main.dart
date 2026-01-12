@@ -2,61 +2,108 @@ import 'package:flutter/material.dart';
 import 'package:uber_cm/navigation_menu.dart';
 import 'package:uber_cm/onboarding_screen.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
-import 'package:uber_cm/settingscreen.dart'; 
+import 'package:uber_cm/settingscreen.dart';
+import 'package:uber_cm/driver_placeholder_screen.dart'; // Import de l'interface chauffeur
 
 void main() async {
+  // S'assurer que les services Flutter sont prêts
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); 
+  const MyApp({super.key});
+
+  // Fonction pour déterminer l'écran de destination selon l'état de l'utilisateur
+  Future<Widget> _getInitialScreen() async {
+    final appwrite = AppwriteService();
+    try {
+      // 1. Vérifier si une session existe
+      final user = await appwrite.account.get();
+
+      // 2. Récupérer le rôle de l'utilisateur dans la base de données
+      // On suppose que tu as une méthode getProfile dans ton AppwriteService
+      final profile = await appwrite.getUserProfile(user.$id);
+      final role = profile?.data['role'] ?? 'client';
+
+      // 3. Rediriger selon le rôle
+      if (role == 'chauffeur') {
+        return const DriverPlaceholderScreen();
+      } else {
+        return const NavigationMenu();
+      }
+    } catch (e) {
+      // Si erreur (pas de session, pas d'internet), retour à l'onboarding
+      debugPrint("Utilisateur non connecté ou erreur : $e");
+      return const UberOnboarding();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appwrite = AppwriteService();
-
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: themeNotifier,
       builder: (context, currentMode, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Uber CM',
-          themeMode: currentMode, 
-          // THÈME CLAIR
+          themeMode: currentMode,
+
+          // DESIGN THÈME CLAIR
           theme: ThemeData(
+            useMaterial3: true,
             brightness: Brightness.light,
-            primarySwatch: Colors.orange,
+            colorSchemeSeed: Colors.orange,
             scaffoldBackgroundColor: Colors.white,
-            textTheme: const TextTheme(
-              bodyLarge: TextStyle(color: Colors.black),
-              bodyMedium: TextStyle(color: Colors.black87),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              iconTheme: IconThemeData(color: Colors.black),
             ),
           ),
-          // THÈME SOMBRE
+
+          // DESIGN THÈME SOMBRE
           darkTheme: ThemeData(
+            useMaterial3: true,
             brightness: Brightness.dark,
-            primarySwatch: Colors.orange,
+            colorSchemeSeed: Colors.orange,
             scaffoldBackgroundColor: const Color(0xFF121212),
-            textTheme: const TextTheme(
-              bodyLarge: TextStyle(color: Colors.white),
-              bodyMedium: TextStyle(color: Colors.white70),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF121212),
+              elevation: 0,
+              iconTheme: IconThemeData(color: Colors.white),
             ),
           ),
-          home: FutureBuilder(
-            // On vérifie le compte au lieu de la session (plus stable pour la persistance)
-            future: appwrite.account.get(), 
+
+          home: FutureBuilder<Widget>(
+            future: _getInitialScreen(),
             builder: (context, snapshot) {
+              // Écran de chargement (Splash) pendant la vérification
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.orange)));
+                return Scaffold(
+                  backgroundColor: currentMode == ThemeMode.dark
+                      ? const Color(0xFF121212)
+                      : Colors.white,
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Tu peux remplacer par ton logo image
+                        const Icon(
+                          Icons.local_taxi,
+                          size: 80,
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(height: 20),
+                        const CircularProgressIndicator(color: Colors.orange),
+                      ],
+                    ),
+                  ),
+                );
               }
 
-              // Si on a les données de l'utilisateur, on va à la Home
-              if (snapshot.hasData && snapshot.data != null) {
-                return const NavigationMenu(); 
-              } else {
-                return const UberOnboarding(); 
-              }
+              // Retourne l'écran calculé ou l'onboarding par défaut
+              return snapshot.data ?? const UberOnboarding();
             },
           ),
         );
