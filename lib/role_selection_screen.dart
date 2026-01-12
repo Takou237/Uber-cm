@@ -1,105 +1,126 @@
 import 'package:flutter/material.dart';
-import 'package:uber_cm/auth_screen.dart'; // Vers ton formulaire d'inscription
-import 'package:uber_cm/login_screen.dart'; // Vers ton formulaire de connexion
-import 'package:uber_cm/driver_placeholder_screen.dart'; // Vers la page de maintenance
+import 'package:uber_cm/auth_screen.dart'; 
+import 'package:uber_cm/login_screen.dart'; 
+import 'package:uber_cm/driver_placeholder_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Détection du mode sombre
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTitleColor = isDark ? Colors.white70 : Colors.black54;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              // LOGO DE L'APPLICATION
-              Center(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 100,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.directions_car, 
-                    size: 80, 
-                    color: Colors.orange
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                "Comment voulez-vous\nutiliser Uber_CM ?",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                "Choisissez le mode qui vous convient le mieux.",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
               const SizedBox(height: 40),
-
-              // CARTE PASSAGER (Disponible)
-              _buildRoleCard(
-                context,
-                title: "Passager",
-                roleValue: "client",
-                subtitle: "Commander une course et voyager",
-                icon: Icons.person_pin_circle,
-                color: Colors.orange[50]!,
-                iconColor: Colors.orange[800]!,
-              ),
-              const SizedBox(height: 16),
-
-              // CARTE CHAUFFEUR (En développement)
-              _buildRoleCard(
-                context,
-                title: "Chauffeur",
-                roleValue: "chauffeur",
-                subtitle: "Gagner de l'argent en conduisant",
-                icon: Icons.local_taxi,
-                color: Colors.blue[50]!,
-                iconColor: Colors.blue[800]!,
-              ),
-              const SizedBox(height: 16),
-
-              // CARTE LIVREUR (En développement)
-              _buildRoleCard(
-                context,
-                title: "Livreur",
-                roleValue: "livreur",
-                subtitle: "Livrer des colis et repas",
-                icon: Icons.delivery_dining,
-                color: Colors.green[50]!,
-                iconColor: Colors.green[800]!,
-              ),
-
-              const Spacer(),
-
-              // BOUTON DE CONNEXION
+              // LOGO
               Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    );
-                  },
-                  child: const Text(
-                    "Vous avez déjà un compte ? Connexion",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 80,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.directions_car_filled_rounded, 
+                      size: 60, 
+                      color: Colors.orange[700]
                     ),
                   ),
                 ),
               ),
+              const SizedBox(height: 40),
+              Text(
+                "Bienvenue sur Uber_CM",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Comment souhaitez-vous utiliser l'application aujourd'hui ?",
+                style: TextStyle(fontSize: 16, color: subTitleColor, height: 1.4),
+              ),
+              const SizedBox(height: 35),
+
+              // RÔLES
+              _buildRoleCard(
+                context,
+                title: "Passager",
+                roleValue: "client",
+                subtitle: "Commander une course en quelques clics",
+                icon: Icons.person_pin_circle_rounded,
+                accentColor: Colors.orange,
+                isDark: isDark,
+                isAvailable: true,
+              ),
+              const SizedBox(height: 16),
+              _buildRoleCard(
+                context,
+                title: "Chauffeur",
+                roleValue: "chauffeur",
+                subtitle: "Générer des revenus avec votre véhicule",
+                icon: Icons.local_taxi_rounded,
+                accentColor: Colors.blue,
+                isDark: isDark,
+                isAvailable: false,
+              ),
+              const SizedBox(height: 16),
+              _buildRoleCard(
+                context,
+                title: "Livreur",
+                roleValue: "livreur",
+                subtitle: "Livrer des colis en ville rapidement",
+                icon: Icons.delivery_dining_rounded,
+                accentColor: Colors.green,
+                isDark: isDark,
+                isAvailable: false,
+              ),
+
+              const Spacer(),
+
+              // FOOTER
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      "Vous avez déjà un compte ?",
+                      style: TextStyle(color: subTitleColor),
+                    ),
+                    // --- SECTION CORRIGÉE ---
+                    TextButton(
+                      onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()), // J'ai retiré 'const' ici
+                      ),
+                      child: const Text(
+                        "Se connecter maintenant",
+                        style: TextStyle(
+                         color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                       ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -107,73 +128,91 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 
-  // Widget personnalisé pour les cartes de rôle avec logique de redirection
   Widget _buildRoleCard(
     BuildContext context, {
     required String title,
     required String roleValue,
     required String subtitle,
     required IconData icon,
-    required Color color,
-    required Color iconColor,
+    required Color accentColor,
+    required bool isDark,
+    required bool isAvailable,
   }) {
+    final cardBg = isDark ? Colors.white.withOpacity(0.05) : Colors.grey[50];
+    final borderColor = isDark ? Colors.white10 : Colors.black.withOpacity(0.05);
+
     return InkWell(
       onTap: () {
-        // LOGIQUE : Seul le client peut s'inscrire pour l'instant
         if (roleValue == "client") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AuthScreen(initialRole: roleValue),
-            ),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => AuthScreen(initialRole: roleValue)));
         } else {
-          // Redirection vers la page "En cours de développement"
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DriverPlaceholderScreen(),
-            ),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const DriverPlaceholderScreen()));
         }
       },
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: iconColor.withValues(alpha: 0.1)),
+          color: cardBg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
+              decoration: BoxDecoration(
+                color: accentColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(icon, color: iconColor, size: 30),
+              child: Icon(icon, color: accentColor, size: 28),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18, 
-                      fontWeight: FontWeight.bold
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 18, 
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87
+                        ),
+                      ),
+                      if (!isAvailable) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            "Bientôt",
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                    style: TextStyle(
+                      color: isDark ? Colors.white54 : Colors.black54, 
+                      fontSize: 13
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            Icon(
+              Icons.chevron_right_rounded, 
+              color: isDark ? Colors.white24 : Colors.black26
+            ),
           ],
         ),
       ),
