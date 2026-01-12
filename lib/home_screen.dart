@@ -4,6 +4,7 @@ import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/profile_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:appwrite/models.dart' as models;
+import 'package:uber_cm/map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -78,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // --- BARRE DE RECHERCHE ---
+// --- BARRE DE RECHERCHE ---
             Padding(
               padding: const EdgeInsets.all(20),
               child: Container(
@@ -89,6 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   border: isDark ? Border.all(color: Colors.white10) : null,
                 ),
                 child: TextField(
+                  readOnly: true, // Empêche le clavier de monter car on change de page
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MapScreen()),
+                    );
+                  },
                   style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     hintText: "Où allez-vous ?",
@@ -100,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             // --- SERVICES ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),

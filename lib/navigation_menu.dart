@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uber_cm/home_screen.dart';
-import 'package:uber_cm/profile_screen.dart'; // Pour l'onglet Account
+import 'package:uber_cm/profile_screen.dart';
+import 'package:uber_cm/services_screen.dart';
 
 class NavigationMenu extends StatefulWidget {
   const NavigationMenu({super.key});
@@ -12,11 +13,11 @@ class NavigationMenu extends StatefulWidget {
 class _NavigationMenuState extends State<NavigationMenu> {
   int _selectedIndex = 0;
 
-  // Liste des pages correspondantes aux icônes
+  // Liste des pages propre et unique
   final List<Widget> _pages = [
     const HomeScreen(),
-    const Center(child: Text("Services Screen (À créer)")), // Placeholder
-    const Center(child: Text("Activity Screen (À créer)")), // Placeholder
+    const ServicesScreen(),
+    const Center(child: Text("Activité (À venir)")),
     const ProfileScreen(),
   ];
 
@@ -31,11 +32,11 @@ class _NavigationMenuState extends State<NavigationMenu> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: _pages[_selectedIndex], // Affiche la page sélectionnée
+      body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Garde les labels visibles
+        type: BottomNavigationBarType.fixed,
         backgroundColor: isDark ? Colors.black : Colors.white,
         selectedItemColor: Colors.orange,
         unselectedItemColor: isDark ? Colors.white60 : Colors.black54,
