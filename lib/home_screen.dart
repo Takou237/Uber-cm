@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     textColor,
                     () => Navigator.push(
                       context, 
-                      MaterialPageRoute(builder: (context) => const SavedPlacesScreen()) // On change ProfileScreen par SavedPlacesScreen
+                      MaterialPageRoute(builder: (context) => const SavedPlacesScreen())
                     )
                   );
                 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:uber_cm/navigation_menu.dart';
 import 'package:uber_cm/onboarding_screen.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
-import 'package:uber_cm/home_screen.dart';
 import 'package:uber_cm/settingscreen.dart'; 
 
 void main() async {
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
 
               // Si on a les données de l'utilisateur, on va à la Home
               if (snapshot.hasData && snapshot.data != null) {
-                return const HomeScreen(); 
+                return const NavigationMenu(); 
               } else {
                 return const UberOnboarding(); 
               }
