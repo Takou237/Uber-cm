@@ -22,15 +22,58 @@ class AppwriteService {
     functions = Functions(client);
   }
 
-  // ... (Garde registerUser, loginUser et logout tels quels) ...
+  // --- AUTHENTIFICATION ---
 
-  /// RÉCUPÉRER (Mise à jour avec listDocuments ou syntaxe alternative selon ton SDK)
+  // Inscription
+  Future<void> registerUser(String email, String password, String name, String role, String phone) async {
+    try {
+      await account.create(
+        userId: ID.unique(),
+        email: email,
+        password: password,
+        name: name,
+      );
+      // Optionnel: On peut ajouter le téléphone ou le rôle dans une collection 'users' ici
+      debugPrint("Utilisateur créé avec succès");
+    } catch (e) {
+      debugPrint("Erreur Inscription: $e");
+      throw Exception("Échec de l'inscription");
+    }
+  }
+
+  // Connexion (Crucial pour la session persistante)
+  Future<void> loginUser(String email, String password) async {
+    try {
+      // Création d'une session email
+      await account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
+      debugPrint("Connexion réussie");
+    } catch (e) {
+      debugPrint("Erreur Connexion: $e");
+      throw Exception("Email ou mot de passe incorrect");
+    }
+  }
+
+  // Déconnexion
+  Future<void> logout() async {
+    try {
+      await account.deleteSession(sessionId: 'current');
+      debugPrint("Déconnexion réussie");
+    } catch (e) {
+      debugPrint("Erreur Déconnexion: $e");
+    }
+  }
+
+  // --- GESTION DES LIEUX (FAVORIS) ---
+
+  // Récupérer les lieux
   Future<List<models.Document>> getFavoritePlaces() async {
     try {
       final user = await account.get();
       
-      // Note: Si 'listRows' n'est pas reconnu par ton SDK actuel,
-      // utilise cette syntaxe qui reste la plus propre :
+      // ignore: deprecated_member_use
       final response = await databases.listDocuments(
         databaseId: databaseId,
         collectionId: placesCollectionId,
@@ -38,14 +81,14 @@ class AppwriteService {
           Query.equal('userId', user.$id),
         ],
       );
-      return response.documents;
+      return response.documents; 
     } catch (e) {
-      debugPrint("Note: La collection n'est pas encore accessible ($e)");
+      debugPrint("Erreur lecture lieux: $e");
       return [];
     }
   }
 
-  /// ENREGISTRER (Mise à jour avec la nouvelle syntaxe recommandée)
+  // Enregistrer un lieu
   Future<void> savePlace({
     required String name, 
     required String address, 
@@ -55,9 +98,7 @@ class AppwriteService {
     try {
       final user = await account.get();
       
-      // La recommandation 'createRow' concerne l'évolution interne d'Appwrite.
-      // Pour le SDK Flutter actuel, on continue d'utiliser createDocument
-      // mais on s'assure d'utiliser les bons paramètres.
+      // ignore: deprecated_member_use
       await databases.createDocument(
         databaseId: databaseId,
         collectionId: placesCollectionId,
@@ -71,13 +112,10 @@ class AppwriteService {
           'createdAt': DateTime.now().toIso8601String(),
         },
       );
+      debugPrint("Lieu sauvegardé !");
     } catch (e) {
-      debugPrint("Erreur lors de l'enregistrement de l'adresse : $e");
+      debugPrint("Erreur sauvegarde lieu: $e");
       throw Exception("Impossible de sauvegarder ce lieu.");
     }
   }
-
-  Future<void> loginUser(String trim, String trim2) async {}
-  Future<void> logout() async {}
-  Future<void> registerUser(String trim, String trim2, String trim3, String selectedRole, String trim4) async {}
 }

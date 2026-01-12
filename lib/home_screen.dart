@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/profile_screen.dart';
-import 'package:url_launcher/url_launcher.dart'; // Pour WhatsApp
+import 'package:url_launcher/url_launcher.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AppwriteService _appwrite = AppwriteService();
-  String _userName = "...";
+  String _userName = "Utilisateur"; // Valeur par défaut plus propre
 
   @override
   void initState() {
@@ -23,130 +23,117 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadUserData() async {
     try {
       final user = await _appwrite.account.get();
-      if (mounted) setState(() => _userName = user.name);
+      if (mounted) {
+        setState(() {
+          _userName = user.name.isNotEmpty ? user.name : "Passager";
+        });
+      }
     } catch (e) {
-      debugPrint("Erreur: $e");
+      debugPrint("Erreur chargement profil: $e");
     }
   }
 
-  // Fonction pour ouvrir WhatsApp Support
   void _openWhatsApp() async {
     var whatsappUrl = "whatsapp://send?phone=+237654266241&text=Bonjour Uber CM, j'ai besoin d'aide.";
-    if (!await launchUrl(Uri.parse(whatsappUrl))) {
+    try {
+      await launchUrl(Uri.parse(whatsappUrl));
+    } catch (e) {
       debugPrint("Impossible d'ouvrir WhatsApp");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Détection des couleurs du thème actuel
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final cardColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF6F6F6);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // HEADER MINIMALISTE (Uber Style)
+            // HEADER
             Padding(
               padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text("Uber CM", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text("Uber CM", 
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor)),
                   GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen())),
                     child: CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.orange,
-                      child: Text(_userName[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                      child: Text(_userName[0].toUpperCase(), 
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // ACTION PRINCIPALE : RECHERCHE
+            // BARRE DE RECHERCHE
             Padding(
               padding: const EdgeInsets.all(20),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEEEEE),
+                  color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE),
                   borderRadius: BorderRadius.circular(12),
+                  border: isDark ? Border.all(color: Colors.white10) : null,
                 ),
                 child: TextField(
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     hintText: "Où allez-vous ?",
                     hintStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
                     border: InputBorder.none,
                     icon: const Icon(Icons.search, color: Colors.orange, size: 30),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.access_time_filled, size: 16, color: Colors.orange),
-                          SizedBox(width: 5),
-                          Text("Maintenant", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
+                    suffixIcon: _buildTimePicker(isDark),
                   ),
                 ),
               ),
             ),
 
-            // SERVICES (LES 3 GRANDS)
+            // SERVICES
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildServiceCard("Course", Icons.directions_car),
-                  _buildServiceCard("Colis", Icons.inventory_2),
-                  _buildServiceCard("Réserver", Icons.calendar_month),
+                  _buildServiceCard("Course", Icons.directions_car, cardColor, textColor),
+                  _buildServiceCard("Colis", Icons.inventory_2, cardColor, textColor),
+                  _buildServiceCard("Réserver", Icons.calendar_month, cardColor, textColor),
                 ],
               ),
             ),
 
             const SizedBox(height: 25),
 
-            // ADRESSES RAPIDES
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text("Suggestions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            // SUGGESTIONS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text("Suggestions", 
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
             ),
-            _buildLocationItem(Icons.home, "Maison Essos", "Yaoundé, Cameroun"),
-            _buildLocationItem(Icons.work, "Cité Universitaire", "Ngoa-Ekelle"),
-            _buildLocationItem(Icons.star, "Marché Mokolo", "Point de rendez-vous fréquent"),
+            _buildLocationItem(Icons.home, "Maison Essos", "Yaoundé, Cameroun", isDark, textColor),
+            _buildLocationItem(Icons.work, "Cité Universitaire", "Ngoa-Ekelle", isDark, textColor),
+            _buildLocationItem(Icons.star, "Marché Mokolo", "Point de rendez-vous fréquent", isDark, textColor),
 
             const SizedBox(height: 20),
 
-            // PROMO DISCRÈTE (BANNER)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.local_offer, color: Colors.orange),
-                    SizedBox(width: 10),
-                    Text("Promo : -20% sur votre trajet !", style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
+            // BANNIÈRE PROMO
+            _buildPromoBanner(isDark, textColor),
+            const SizedBox(height: 30),
           ],
         ),
       ),
       
-      // SUPPORT WHATSAPP (Flottant)
       floatingActionButton: FloatingActionButton(
         onPressed: _openWhatsApp,
         backgroundColor: const Color(0xFF25D366),
@@ -155,34 +142,77 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildServiceCard(String title, IconData icon) {
+  // --- WIDGETS DE CONSTRUCTION ---
+
+  Widget _buildTimePicker(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black26 : Colors.white, 
+        borderRadius: BorderRadius.circular(20)
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.access_time_filled, size: 16, color: Colors.orange),
+          SizedBox(width: 5),
+          Text("Maintenant", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceCard(String title, IconData icon, Color cardColor, Color textColor) {
     return Container(
       width: 100,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F6F6),
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Icon(icon, size: 40, color: Colors.orange),
           const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
         ],
       ),
     );
   }
 
-  Widget _buildLocationItem(IconData icon, String title, String subtitle) {
+  Widget _buildLocationItem(IconData icon, String title, String subtitle, bool isDark, Color textColor) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: const Color(0xFFEEEEEE),
+        backgroundColor: isDark ? Colors.white10 : const Color(0xFFEEEEEE),
         child: Icon(icon, color: Colors.orange),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+      subtitle: Text(subtitle, style: TextStyle(color: textColor.withValues(alpha: 0.6))),
+      trailing: Icon(Icons.chevron_right, color: textColor.withValues(alpha: 0.3)),
       onTap: () {},
+    );
+  }
+
+  Widget _buildPromoBanner(bool isDark, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.orange.withValues(alpha: 0.1) : Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.local_offer, color: Colors.orange),
+            const SizedBox(width: 10),
+            Text("Promo : -20% sur votre trajet !", 
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          ],
+        ),
+      ),
     );
   }
 }
