@@ -12,6 +12,8 @@ class AppwriteService {
   final String databaseId = '695d1b430005eb249f4b';
   final String usersCollectionId = 'profiles';
   final String placesCollectionId = 'user_places';
+  final String ridesCollectionId =
+      'rides'; // ID à créer dans ta console Appwrite
 
   AppwriteService() {
     client
@@ -128,7 +130,6 @@ class AppwriteService {
     required double longitude,
   }) async {
     try {
-      // Vérification de l'utilisateur avant l'envoi
       final user = await account.get();
 
       await databases.createDocument(
@@ -144,14 +145,9 @@ class AppwriteService {
           'createdAt': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint("Lieu sauvegardé avec succès dans Appwrite");
+      debugPrint("Lieu sauvegardé avec succès");
     } catch (e) {
-      // Affiche l'erreur réelle dans ton terminal pour débugger
       debugPrint("ERREUR DÉTAILLÉE APPWRITE: $e");
-
-      if (e is AppwriteException) {
-        throw Exception("Erreur Appwrite (${e.code}): ${e.message}");
-      }
       throw Exception("Impossible de sauvegarder ce lieu.");
     }
   }
@@ -164,8 +160,44 @@ class AppwriteService {
         documentId: documentId,
       );
     } catch (e) {
-      debugPrint("Erreur suppression: $e");
       throw Exception("Erreur lors de la suppression.");
+    }
+  }
+
+  // --- GESTION DES COURSES (RIDES) ---
+
+  /// Crée une nouvelle demande de course
+  Future<void> createRide({
+    required String destinationAddress,
+    required double destinationLat,
+    required double destinationLng,
+    required double price,
+    required String sourceAddress,
+  }) async {
+    try {
+      final user = await account.get();
+
+      await databases.createDocument(
+        databaseId: databaseId,
+        collectionId: ridesCollectionId,
+        documentId: ID.unique(),
+        data: {
+          'userId': user.$id,
+          'userName': user.name,
+          'sourceAddress': sourceAddress,
+          'destinationAddress': destinationAddress,
+          'destinationLat': destinationLat,
+          'destinationLng': destinationLng,
+          'price': price,
+          'status':
+              'pending', // pending, accepted, ongoing, completed, cancelled
+          'createdAt': DateTime.now().toIso8601String(),
+        },
+      );
+      debugPrint("Course créée avec succès dans Appwrite");
+    } catch (e) {
+      debugPrint("Erreur création course: $e");
+      throw Exception("Impossible de commander la course.");
     }
   }
 }

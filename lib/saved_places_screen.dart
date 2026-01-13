@@ -22,6 +22,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
   }
 
   Future<void> _fetchPlaces() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final places = await _appwrite.getFavoritePlaces();
@@ -56,7 +57,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
     final nameController = TextEditingController();
     final addressController = TextEditingController();
 
-    // Variables pour stocker les coordonnées réelles
+    // On initialise avec des valeurs par défaut (Yaoundé)
     double selectedLat = 3.8667;
     double selectedLng = 11.5167;
 
@@ -95,30 +96,25 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: addressController,
+                  readOnly:
+                      true, // Empêche la saisie manuelle pour forcer l'usage de la carte
+                  onTap: () async {
+                    // Déclenche la carte même si on clique sur le champ
+                    _openMapPicker(addressController, (lat, lng) {
+                      setModalState(() {
+                        selectedLat = lat;
+                        selectedLng = lng;
+                      });
+                    });
+                  },
                   decoration: InputDecoration(
                     labelText: "Adresse exacte",
-                    hintText: "Saisissez ou choisissez sur la carte",
+                    hintText: "Cliquez pour choisir sur la carte",
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.map_outlined),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.my_location, color: Colors.orange),
-                      onPressed: () async {
-                        // On attend maintenant une Map en retour
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MapScreen(),
-                          ),
-                        );
-
-                        if (result != null && result is Map<String, dynamic>) {
-                          setModalState(() {
-                            addressController.text = result['address'];
-                            selectedLat = result['latitude'];
-                            selectedLng = result['longitude'];
-                          });
-                        }
-                      },
+                    suffixIcon: const Icon(
+                      Icons.my_location,
+                      color: Colors.orange,
                     ),
                   ),
                 ),
@@ -136,7 +132,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                     onPressed: () async {
                       if (nameController.text.isNotEmpty &&
                           addressController.text.isNotEmpty) {
-                        // On envoie les vraies coordonnées à Appwrite
+                        // Affichage d'un indicateur de chargement si nécessaire
                         await _appwrite.savePlace(
                           name: nameController.text,
                           address: addressController.text,
@@ -144,9 +140,9 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                           longitude: selectedLng,
                         );
 
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        _fetchPlaces();
+                        if (!mounted) return;
+                        Navigator.pop(context); // Ferme le BottomSheet
+                        _fetchPlaces(); // Rafraîchit la liste
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -173,6 +169,22 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
     );
   }
 
+  // Fonction helper pour ouvrir la carte et récupérer les données
+  Future<void> _openMapPicker(
+    TextEditingController controller,
+    Function(double, double) onCoordsUpdated,
+  ) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MapScreen()),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      controller.text = result['address'];
+      onCoordsUpdated(result['latitude'], result['longitude']);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -191,72 +203,71 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.orange))
           : _places.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.location_off_outlined,
-                    size: 80,
-                    color: textColor.withOpacity(0.2),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Aucune adresse enregistrée",
-                    style: TextStyle(color: textColor.withOpacity(0.5)),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              itemCount: _places.length,
-              itemBuilder: (context, index) {
-                final place = _places[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  child: Card(
-                    elevation: 0,
-                    color: isDark ? Colors.white10 : Colors.grey.shade100,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Colors.orange,
-                        child: Icon(Icons.location_on, color: Colors.white),
-                      ),
-                      title: Text(
-                        place.data['name'] ?? "Nom inconnu",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      subtitle: Text(
-                        place.data['address'] ?? "Sans adresse",
-                        style: TextStyle(color: textColor.withOpacity(0.6)),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.redAccent,
-                        ),
-                        onPressed: () => _handleDelete(place.$id),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
+          ? _buildEmptyState(textColor)
+          : _buildPlacesList(isDark, textColor),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPlaceDialog,
         backgroundColor: Colors.orange,
         child: const Icon(Icons.add, color: Colors.white),
       ),
+    );
+  }
+
+  Widget _buildEmptyState(Color textColor) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.location_off_outlined,
+            size: 80,
+            color: textColor.withOpacity(0.2),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Aucune adresse enregistrée",
+            style: TextStyle(color: textColor.withOpacity(0.5)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlacesList(bool isDark, Color textColor) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      itemCount: _places.length,
+      itemBuilder: (context, index) {
+        final place = _places[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: Card(
+            elevation: 0,
+            color: isDark ? Colors.white10 : Colors.grey.shade100,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.orange,
+                child: Icon(Icons.location_on, color: Colors.white),
+              ),
+              title: Text(
+                place.data['name'] ?? "Nom inconnu",
+                style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+              ),
+              subtitle: Text(
+                place.data['address'] ?? "Sans adresse",
+                style: TextStyle(color: textColor.withOpacity(0.6)),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                onPressed: () => _handleDelete(place.$id),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
