@@ -4,8 +4,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:uber_cm/services/price_service.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
-// N'oublie pas de créer ce fichier ou de l'importer correctement
-// import 'package:uber_cm/screens/searching_driver_screen.dart';
 import 'package:flutter/foundation.dart';
 
 class MapScreen extends StatefulWidget {
@@ -111,7 +109,6 @@ class _MapScreenState extends State<MapScreen> {
     setState(() => _isBooking = true);
 
     try {
-      // Appel au service Appwrite
       await _appwriteService.createRide(
         sourceAddress: "Ma position actuelle",
         destinationAddress: _selectedAddress,
@@ -121,13 +118,6 @@ class _MapScreenState extends State<MapScreen> {
       );
 
       if (mounted) {
-        // Redirection vers l'écran de recherche de chauffeur
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const SearchingDriverScreen())
-        // );
-
-        // En attendant que tu crées l'écran, on affiche ce message :
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Course envoyée ! Recherche d'un chauffeur..."),
@@ -138,7 +128,7 @@ class _MapScreenState extends State<MapScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar( // <-- Ajout du const ici
             content: Text(
               "Erreur : Vérifiez les attributs Appwrite (userName...)",
             ),
@@ -174,11 +164,11 @@ class _MapScreenState extends State<MapScreen> {
           ),
 
           if (!_showPricePanel)
-            IgnorePointer(
+            const IgnorePointer( // <-- Ajout du const ici
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: const Icon(
+                  padding: EdgeInsets.only(bottom: 40),
+                  child: Icon(
                     Icons.location_on,
                     color: Colors.orange,
                     size: 50,

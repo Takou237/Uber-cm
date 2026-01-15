@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   )
                 : null,
             filled: true,
-            fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
+            fillColor: isDark ? Colors.white.withValues(alpha:0.05) : Colors.grey[100],
             contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Colors.orange, width: 1.5)),
@@ -226,9 +226,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildDivider(Color color) {
     return Row(
       children: [
-        Expanded(child: Divider(color: color.withOpacity(0.2))),
+        Expanded(child: Divider(color: color.withValues(alpha:0.2))),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text("OU", style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold))),
-        Expanded(child: Divider(color: color.withOpacity(0.2))),
+        Expanded(child: Divider(color: color.withValues(alpha:0.2))),
       ],
     );
   }

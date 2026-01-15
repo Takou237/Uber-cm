@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart'; // Ajoute lottie dans ton pubspec.yaml
+import 'package:lottie/lottie.dart'; // Import maintenant utilisé !
 
 class SearchingDriverScreen extends StatelessWidget {
   const SearchingDriverScreen({super.key});
@@ -12,12 +12,16 @@ class SearchingDriverScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Une petite animation sympa (tu peux utiliser une icône si tu n'as pas Lottie)
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-              strokeWidth: 5,
+            // UTILISATION DE LOTTIE POUR UNE ANIMATION DE CARTE/RADAR
+            // Tu peux trouver des JSON sur lottiefiles.com
+            Lottie.network(
+              'https://assets9.lottiefiles.com/packages/lf20_6sxyjyjj.json', // Exemple d'animation de radar
+              height: 200,
+              repeat: true,
             ),
-            const SizedBox(height: 40),
+            
+            const SizedBox(height: 20),
+            
             const Text(
               "Recherche d'un chauffeur...",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -28,8 +32,15 @@ class SearchingDriverScreen extends StatelessWidget {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 50),
+            
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red[50]),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[50],
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 "Annuler la recherche",

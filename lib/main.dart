@@ -3,10 +3,9 @@ import 'package:uber_cm/navigation_menu.dart';
 import 'package:uber_cm/onboarding_screen.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/settingscreen.dart';
-import 'package:uber_cm/driver_placeholder_screen.dart'; // Import de l'interface chauffeur
+import 'package:uber_cm/driver_placeholder_screen.dart';
 
 void main() async {
-  // S'assurer que les services Flutter sont prêts
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
@@ -14,26 +13,19 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Fonction pour déterminer l'écran de destination selon l'état de l'utilisateur
   Future<Widget> _getInitialScreen() async {
     final appwrite = AppwriteService();
     try {
-      // 1. Vérifier si une session existe
       final user = await appwrite.account.get();
-
-      // 2. Récupérer le rôle de l'utilisateur dans la base de données
-      // On suppose que tu as une méthode getProfile dans ton AppwriteService
       final profile = await appwrite.getUserProfile(user.$id);
       final role = profile?.data['role'] ?? 'client';
 
-      // 3. Rediriger selon le rôle
       if (role == 'chauffeur') {
         return const DriverPlaceholderScreen();
       } else {
         return const NavigationMenu();
       }
     } catch (e) {
-      // Si erreur (pas de session, pas d'internet), retour à l'onboarding
       debugPrint("Utilisateur non connecté ou erreur : $e");
       return const UberOnboarding();
     }
@@ -49,7 +41,6 @@ class MyApp extends StatelessWidget {
           title: 'Uber CM',
           themeMode: currentMode,
 
-          // DESIGN THÈME CLAIR
           theme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.light,
@@ -62,7 +53,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
 
-          // DESIGN THÈME SOMBRE
           darkTheme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
@@ -78,31 +68,29 @@ class MyApp extends StatelessWidget {
           home: FutureBuilder<Widget>(
             future: _getInitialScreen(),
             builder: (context, snapshot) {
-              // Écran de chargement (Splash) pendant la vérification
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Scaffold(
                   backgroundColor: currentMode == ThemeMode.dark
                       ? const Color(0xFF121212)
                       : Colors.white,
-                  body: Center(
+                  // AJOUT DU CONST ICI
+                  body: const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Tu peux remplacer par ton logo image
-                        const Icon(
+                        Icon(
                           Icons.local_taxi,
                           size: 80,
                           color: Colors.orange,
                         ),
-                        const SizedBox(height: 20),
-                        const CircularProgressIndicator(color: Colors.orange),
+                        SizedBox(height: 20),
+                        CircularProgressIndicator(color: Colors.orange),
                       ],
                     ),
                   ),
                 );
               }
-
-              // Retourne l'écran calculé ou l'onboarding par défaut
+              
               return snapshot.data ?? const UberOnboarding();
             },
           ),

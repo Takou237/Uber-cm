@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uber_cm/saved_places_screen.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/login_screen.dart';
-import 'package:uber_cm/settingscreen.dart'; // Pour themeNotifier
+import 'package:uber_cm/settingscreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -34,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             const SizedBox(height: 20),
             
-            // --- HEADER UTILISATEUR ---
             FutureBuilder(
               future: appwrite.account.get(),
               builder: (context, snapshot) {
@@ -85,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 title: Text("Mode Sombre", style: TextStyle(color: textColor)),
                 secondary: const Icon(Icons.dark_mode_outlined, color: Colors.orange),
                 value: isDark,
-                activeColor: Colors.orange,
+                activeThumbColor: Colors.orange,
                 onChanged: (bool value) {
                   themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
                 },
@@ -124,8 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// --- ÉCRAN DE DÉTAIL DES PARAMÈTRES ---
-
 class SettingsDetailScreen extends StatelessWidget {
   const SettingsDetailScreen({super.key});
 
@@ -159,7 +156,7 @@ class SettingsDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
                 child: Column(
                   children: [
-                    _infoRow("Nom", user.name, textColor), // Ajouté au-dessus de l'email
+                    _infoRow("Nom", user.name, textColor),
                     const Divider(),
                     _infoRow("Email", user.email, textColor),
                     const Divider(),
@@ -171,14 +168,10 @@ class SettingsDetailScreen extends StatelessWidget {
               const SizedBox(height: 25),
               _buildSectionHeader("Sécurité du compte"),
               
-              // TUILLE VÉRIFICATION 2 ÉTAPES (REMISE)
-              _settingTile(context, isDark, Icons.verified_user_outlined, "Vérification à deux étapes", "Renforcez la sécurité", () {
-                // Logique 2FA à implémenter
-              }),
+              _settingTile(context, isDark, Icons.verified_user_outlined, "Vérification à deux étapes", "Renforcez la sécurité", () {}),
               
-              // OPTION CHANGER DE NUMÉRO
               _settingTile(context, isDark, Icons.phone_android_outlined, "Changer de numéro", "Nécessite votre mot de passe", () {
-                _showUpdatePhoneDialog(context, appwrite, user.email, isDark, textColor);
+                _showUpdatePhoneDialog(context, appwrite, isDark, textColor);
               }),
 
               const SizedBox(height: 25),
@@ -209,7 +202,7 @@ class SettingsDetailScreen extends StatelessWidget {
     );
   }
 
-  void _showUpdatePhoneDialog(BuildContext context, AppwriteService appwrite, String email, bool isDark, Color textColor) {
+  void _showUpdatePhoneDialog(BuildContext context, AppwriteService appwrite, bool isDark, Color textColor) {
     final phoneController = TextEditingController();
     final passController = TextEditingController();
 
@@ -232,9 +225,11 @@ class SettingsDetailScreen extends StatelessWidget {
             onPressed: () async {
               try {
                 await appwrite.account.updatePhone(phone: phoneController.text, password: passController.text);
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Numéro mis à jour !")));
               } catch (e) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Échec : Mot de passe incorrect"), backgroundColor: Colors.red));
               }
             },
@@ -260,8 +255,10 @@ class SettingsDetailScreen extends StatelessWidget {
               try {
                 await appwrite.account.createEmailPasswordSession(email: email, password: passController.text);
                 await appwrite.account.updateStatus();
+                if (!context.mounted) return;
                 Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
               } catch (e) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Mot de passe incorrect"), backgroundColor: Colors.red));
               }
             },
@@ -284,6 +281,7 @@ class SettingsDetailScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               await appwrite.logout();
+              if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
             },
             child: const Text("OUI", style: TextStyle(color: Colors.orange)),

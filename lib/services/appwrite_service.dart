@@ -8,12 +8,10 @@ class AppwriteService {
   late Databases databases;
   late Functions functions;
 
-  // Tes IDs réels
   final String databaseId = '695d1b430005eb249f4b';
   final String usersCollectionId = 'profiles';
   final String placesCollectionId = 'user_places';
-  final String ridesCollectionId =
-      'rides'; // ID à créer dans ta console Appwrite
+  final String ridesCollectionId = 'rides'; 
 
   AppwriteService() {
     client
@@ -38,6 +36,7 @@ class AppwriteService {
 
   Future<models.Document?> getUserProfile(String userId) async {
     try {
+      // ignore: deprecated_member_use
       return await databases.getDocument(
         databaseId: databaseId,
         collectionId: usersCollectionId,
@@ -64,6 +63,7 @@ class AppwriteService {
         name: name,
       );
 
+      // ignore: deprecated_member_use
       await databases.createDocument(
         databaseId: databaseId,
         collectionId: usersCollectionId,
@@ -77,7 +77,6 @@ class AppwriteService {
           'createdAt': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint("Utilisateur et profil créés !");
     } catch (e) {
       debugPrint("Erreur Inscription: $e");
       throw Exception("Échec de l'inscription : $e");
@@ -103,11 +102,12 @@ class AppwriteService {
     }
   }
 
-  // --- GESTION DES LIEUX (FAVORIS) ---
+  // --- GESTION DES LIEUX ---
 
   Future<List<models.Document>> getFavoritePlaces() async {
     try {
       final user = await account.get();
+      // ignore: deprecated_member_use
       final response = await databases.listDocuments(
         databaseId: databaseId,
         collectionId: placesCollectionId,
@@ -131,7 +131,7 @@ class AppwriteService {
   }) async {
     try {
       final user = await account.get();
-
+      // ignore: deprecated_member_use
       await databases.createDocument(
         databaseId: databaseId,
         collectionId: placesCollectionId,
@@ -145,15 +145,14 @@ class AppwriteService {
           'createdAt': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint("Lieu sauvegardé avec succès");
     } catch (e) {
-      debugPrint("ERREUR DÉTAILLÉE APPWRITE: $e");
       throw Exception("Impossible de sauvegarder ce lieu.");
     }
   }
 
   Future<void> deletePlace(String documentId) async {
     try {
+      // ignore: deprecated_member_use
       await databases.deleteDocument(
         databaseId: databaseId,
         collectionId: placesCollectionId,
@@ -166,7 +165,6 @@ class AppwriteService {
 
   // --- GESTION DES COURSES (RIDES) ---
 
-  /// Crée une nouvelle demande de course
   Future<void> createRide({
     required String destinationAddress,
     required double destinationLat,
@@ -176,7 +174,7 @@ class AppwriteService {
   }) async {
     try {
       final user = await account.get();
-
+      // ignore: deprecated_member_use
       await databases.createDocument(
         databaseId: databaseId,
         collectionId: ridesCollectionId,
@@ -189,14 +187,11 @@ class AppwriteService {
           'destinationLat': destinationLat,
           'destinationLng': destinationLng,
           'price': price,
-          'status':
-              'pending', // pending, accepted, ongoing, completed, cancelled
+          'status': 'pending',
           'createdAt': DateTime.now().toIso8601String(),
         },
       );
-      debugPrint("Course créée avec succès dans Appwrite");
     } catch (e) {
-      debugPrint("Erreur création course: $e");
       throw Exception("Impossible de commander la course.");
     }
   }

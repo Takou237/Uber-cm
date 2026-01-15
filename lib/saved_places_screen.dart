@@ -47,9 +47,10 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
         const SnackBar(content: Text("Lieu supprimé avec succès")),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erreur : ${e.toString()}")));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : ${e.toString()}")),
+      );
     }
   }
 
@@ -57,7 +58,6 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
     final nameController = TextEditingController();
     final addressController = TextEditingController();
 
-    // On initialise avec des valeurs par défaut (Yaoundé)
     double selectedLat = 3.8667;
     double selectedLng = 11.5167;
 
@@ -96,10 +96,8 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                 const SizedBox(height: 15),
                 TextField(
                   controller: addressController,
-                  readOnly:
-                      true, // Empêche la saisie manuelle pour forcer l'usage de la carte
+                  readOnly: true,
                   onTap: () async {
-                    // Déclenche la carte même si on clique sur le champ
                     _openMapPicker(addressController, (lat, lng) {
                       setModalState(() {
                         selectedLat = lat;
@@ -107,12 +105,12 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                       });
                     });
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration( // <-- AJOUT DU CONST ICI
                     labelText: "Adresse exacte",
                     hintText: "Cliquez pour choisir sur la carte",
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.map_outlined),
-                    suffixIcon: const Icon(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.map_outlined),
+                    suffixIcon: Icon(
                       Icons.my_location,
                       color: Colors.orange,
                     ),
@@ -132,7 +130,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                     onPressed: () async {
                       if (nameController.text.isNotEmpty &&
                           addressController.text.isNotEmpty) {
-                        // Affichage d'un indicateur de chargement si nécessaire
+                        
                         await _appwrite.savePlace(
                           name: nameController.text,
                           address: addressController.text,
@@ -140,10 +138,12 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                           longitude: selectedLng,
                         );
 
-                        if (!mounted) return;
-                        Navigator.pop(context); // Ferme le BottomSheet
-                        _fetchPlaces(); // Rafraîchit la liste
+                        // VÉRIFICATION DU MOUNTED ICI
+                        if (!context.mounted) return;
+                        Navigator.pop(context); 
+                        _fetchPlaces(); 
                       } else {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text("Veuillez remplir tous les champs"),
@@ -169,7 +169,6 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
     );
   }
 
-  // Fonction helper pour ouvrir la carte et récupérer les données
   Future<void> _openMapPicker(
     TextEditingController controller,
     Function(double, double) onCoordsUpdated,
@@ -221,12 +220,14 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
           Icon(
             Icons.location_off_outlined,
             size: 80,
-            color: textColor.withOpacity(0.2),
+            // Correction ici : usage de .withValues
+            color: textColor.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 10),
           Text(
             "Aucune adresse enregistrée",
-            style: TextStyle(color: textColor.withOpacity(0.5)),
+            // Correction ici : usage de .withValues
+            style: TextStyle(color: textColor.withValues(alpha: 0.5)),
           ),
         ],
       ),
@@ -258,7 +259,8 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
               ),
               subtitle: Text(
                 place.data['address'] ?? "Sans adresse",
-                style: TextStyle(color: textColor.withOpacity(0.6)),
+                // Correction ici : usage de .withValues
+                style: TextStyle(color: textColor.withValues(alpha: 0.6)),
               ),
               trailing: IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
