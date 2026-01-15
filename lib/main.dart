@@ -11,8 +11,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()..initUser()),
-        // Tu pourras ajouter un RideProvider plus tard ici
+        ChangeNotifierProvider(create: (_) => UserProvider()..refreshUser()),
       ],
       child: const MyApp(),
     ),

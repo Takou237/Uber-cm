@@ -4,20 +4,27 @@ import 'package:uber_cm/services/appwrite_service.dart';
 
 class UserProvider with ChangeNotifier {
   final AppwriteService _appwrite = AppwriteService();
+  
   models.User? _user;
   bool _isLoading = false;
 
   models.User? get user => _user;
   bool get isLoading => _isLoading;
 
-  // Récupérer l'utilisateur une seule fois pour toute l'app
-  Future<void> initUser() async {
+  // Cette fonction charge l'utilisateur et prévient tout le monde
+  Future<void> refreshUser() async {
     _isLoading = true;
-    notifyListeners(); // Prévient les widgets d'afficher un loader
+    notifyListeners(); 
 
-    _user = await _appwrite.getCurrentUser();
-    
-    _isLoading = false;
-    notifyListeners(); // Prévient les widgets de cacher le loader et d'afficher les infos
+    try {
+      _user = await _appwrite.account.get().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint("Erreur Provider User: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
+
+  initUser() {}
 }
