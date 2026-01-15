@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:uber_cm/navigation_menu.dart';
 import 'package:uber_cm/onboarding_screen.dart';
+import 'package:uber_cm/providers/user_provider.dart';
 import 'package:uber_cm/services/appwrite_service.dart';
 import 'package:uber_cm/settingscreen.dart';
 import 'package:uber_cm/driver_placeholder_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+void main() {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()..initUser()),
+        // Tu pourras ajouter un RideProvider plus tard ici
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -90,7 +99,7 @@ class MyApp extends StatelessWidget {
                   ),
                 );
               }
-              
+
               return snapshot.data ?? const UberOnboarding();
             },
           ),
